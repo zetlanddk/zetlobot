@@ -15,7 +15,7 @@ export async function assistantThreadMessage(
   await client.chat.postMessage({
     channel: channel_id,
     thread_ts: thread_ts,
-    text: "Hello, I'm an AI assistant built with the AI SDK by Vercel!",
+    text: "Hello, I'm the Zetlobot AI assistant 👋",
   });
 
   await client.assistant.threads.setSuggestedPrompts({
@@ -25,10 +25,6 @@ export async function assistantThreadMessage(
       {
         title: "Get the weather",
         message: "What is the current weather in London?",
-      },
-      {
-        title: "Get the news",
-        message: "What is the latest Premier League news from the BBC?",
       },
     ],
   });
