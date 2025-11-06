@@ -15,8 +15,7 @@
     "@ai-sdk/openai": "^1.1.14",
     "@slack/web-api": "^7.9.3",
     "@vercel/functions": "^2.0.0",
-    "ai": "^4.1.46",
-    "zod": "^3.24.2"
+    "ai": "^4.1.46"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
