@@ -21,7 +21,6 @@ export const generateResponse = async (
     - Current date is: ${new Date().toISOString().split("T")[0]}
     - Put sources inline if possible.`,
     messages,
-    maxSteps: 10,
     tools: tools,
   });
 
