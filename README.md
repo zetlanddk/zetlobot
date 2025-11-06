@@ -12,7 +12,6 @@ An AI-powered chatbot for Slack powered by the [AI SDK by Vercel](https://sdk.ve
 - Maintains conversation context within both threads and direct messages
 - Built-in tools for enhanced capabilities:
   - Real-time weather lookup
-  - Web search (powered by [Exa](https://exa.ai))
 - Easily extensible architecture to add custom tools (e.g., knowledge search)
 
 ## Prerequisites
@@ -20,7 +19,6 @@ An AI-powered chatbot for Slack powered by the [AI SDK by Vercel](https://sdk.ve
 - [Node.js](https://nodejs.org/) 18+ installed
 - Slack workspace with admin privileges
 - [OpenAI API key](https://platform.openai.com/api-keys)
-- [Exa API key](https://exa.ai) (for web search functionality)
 - A server or hosting platform (e.g., [Vercel](https://vercel.com)) to deploy the bot
 
 ## Setup
@@ -149,10 +147,6 @@ The bot maintains context within both threads and direct messages, so it can fol
 1. **Weather Tool**: The bot can fetch real-time weather information for any location.
 
    - Example: "What's the weather like in London right now?"
-
-2. **Web Search**: The bot can search the web for up-to-date information using [Exa](https://exa.ai).
-   - Example: "Search for the latest news about AI technology"
-   - You can also specify a domain: "Search for the latest sports news on bbc.com"
 
 ### Extending with New Tools
 
