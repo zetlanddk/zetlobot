@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { CoreMessage, generateText } from "ai";
-import { mainframe } from "./mainframe-mcp.js";
+import { mainframe } from "./mainframe-mcp";
 
 export const generateResponse = async (
   messages: CoreMessage[],
