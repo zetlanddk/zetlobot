@@ -1,11 +1,13 @@
 import { openai } from "@ai-sdk/openai";
-import { CoreMessage, generateText, tool } from "ai";
-import { tools } from "./mainframe-mcp.js";
+import { CoreMessage, generateText } from "ai";
+import { mainframe } from "./mainframe-mcp.js";
 
 export const generateResponse = async (
   messages: CoreMessage[],
   updateStatus?: (status: string) => void
 ) => {
+  const client = await mainframe;
+  const tools = await client.tools();
   const { text } = await generateText({
     model: openai("gpt-4o"),
     system: `You are a Slack bot assistant for the Zetland media company. Keep your responses concise and to the point.
