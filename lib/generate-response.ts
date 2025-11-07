@@ -1,19 +1,25 @@
 import { openai } from "@ai-sdk/openai";
 import { CoreMessage, generateText } from "ai";
 import { experimental_createMCPClient as createMCPClient } from "@ai-sdk/mcp";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 export const generateResponse = async (
   messages: CoreMessage[],
   updateStatus?: (status: string) => void
 ) => {
-  const client = await createMCPClient({
-    transport: {
-      type: "http",
-      url: "https://api-staging.zetland.dk/api/v1/internal/mcp",
-      headers: { "X-Internal-Api-Key": process.env.MAINFRAME_API_KEY! },
-    },
-  });
+  await fetch("http://localhost:10000/dummy");
+  const transport = new StreamableHTTPClientTransport(
+    new URL("http://localhost:10000/api/v1/internal/mcp"),
+    {
+      requestInit: {
+        headers: { "X-Internal-Api-Key": process.env.MAINFRAME_API_KEY! },
+      },
+    }
+  );
+
+  const client = await createMCPClient({ transport });
   const tools = await client.tools();
+
   const { text } = await generateText({
     model: openai("gpt-4o"),
     system: `You are a Slack bot assistant for the Zetland media company. Keep your responses concise and to the point.
