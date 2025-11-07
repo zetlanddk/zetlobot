@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { CoreMessage, generateText } from "ai";
+import { CoreMessage, generateText, stepCountIs } from "ai";
 import { experimental_createMCPClient as createMCPClient } from "@ai-sdk/mcp";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
@@ -26,7 +26,8 @@ export const generateResponse = async (
     - Current date is: ${new Date().toISOString().split("T")[0]}
     - Put sources inline if possible.`,
     messages,
-    tools: tools,
+    tools,
+    stopWhen: stepCountIs(5),
   });
 
   // Convert markdown to Slack mrkdwn format
