@@ -2,6 +2,7 @@ import type { SlackEvent } from "@slack/web-api";
 import {
   assistantThreadMessage,
   handleNewAssistantMessage,
+  handleThreadedMessage,
 } from "../lib/handle-messages";
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
       waitUntil(assistantThreadMessage(event));
     }
 
+    // Handle direct messages (IM)
     if (
       event.type === "message" &&
       !event.subtype &&
@@ -41,6 +43,16 @@ export async function POST(request: Request) {
       event.bot_id !== botUserId
     ) {
       waitUntil(handleNewAssistantMessage(event, botUserId));
+    }
+
+    // Handle threaded messages in channels where bot has participated
+    if (
+      event.type === "message" &&
+      !event.subtype &&
+      event.channel_type !== "im" &&
+      event.thread_ts
+    ) {
+      waitUntil(handleThreadedMessage(event, botUserId));
     }
 
     return new Response("Success!", { status: 200 });

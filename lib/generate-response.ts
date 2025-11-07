@@ -15,7 +15,7 @@ export const generateResponse = async (
     ...(await chargebeeKnowledgeBaseTools()),
   };
 
-  const { text } = await generateText({
+  const response = await generateText({
     model: openai("gpt-5-mini"),
     system: getSystemPrompt(),
     messages,
@@ -23,6 +23,7 @@ export const generateResponse = async (
     stopWhen: stepCountIs(7),
   });
 
+
   // Convert markdown to Slack mrkdwn format
-  return text.replace(/\[(.*?)\]\((.*?)\)/g, "<$2|$1>").replace(/\*\*/g, "*");
+  return response.text.replace(/\[(.*?)\]\((.*?)\)/g, "<$2|$1>").replace(/\*\*/g, "*");
 };

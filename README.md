@@ -47,6 +47,7 @@ pnpm install
    - Add the following [Bot Token Scopes](https://api.slack.com/scopes):
       - `app_mentions:read`
       - `assistant:write`
+      - `channels:history`
       - `chat:write`
       - `im:history`
       - `im:read`
@@ -61,6 +62,7 @@ pnpm install
    - Under "Subscribe to bot events", add:
       - `app_mention`
       - `assistant_thread_started`
+      - `message:channels`
       - `message:im`
    - Save Changes
 
@@ -137,10 +139,11 @@ Make sure to modify the [subscription URL](./README.md/#enable-slack-events) to 
 
 The bot will respond to:
 
-1. Direct messages - Send a DM to your bot
-2. Mentions - Mention your bot in a channel using `@YourBotName`
+1. **Direct messages** - Send a DM to your bot
+2. **Initial mentions** - Mention your bot in a channel using `@YourBotName` 
+3. **Thread follow-ups** - Once mentioned in a thread, the bot will respond to all subsequent messages in that thread (without needing to be tagged again)
 
-The bot maintains context within both threads and direct messages, so it can follow along with the conversation.
+The bot maintains context within both threads and direct messages, so it can follow along with the conversation. When you mention the bot in a thread for the first time, it will continue to participate in that conversation automatically.
 
 ### Available Tools
 
