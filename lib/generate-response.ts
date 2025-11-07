@@ -10,7 +10,7 @@ export const generateResponse = async (
   updateStatus?: (status: string) => void
 ) => {
   const tools = {
-    // ...(await mainframeTools()),
+    ...(await mainframeTools()),
     // ...(await chargebeeKnowledgeBaseTools()),
     ...(await chargebeeDataLookupTools()),
   };
