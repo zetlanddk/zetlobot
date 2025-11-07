@@ -1,13 +1,17 @@
 import { openai } from "@ai-sdk/openai";
 import { CoreMessage, generateText, stepCountIs } from "ai";
-import { getTools } from "./tools";
+import { getTools as mainframeTools } from "./tools/mainframe";
+import { getTools as chargebeeKnowledgeBaseTools } from "./tools/chargebee-knowlege-base";
 import { getSystemPrompt } from "./system-prompt";
 
 export const generateResponse = async (
   messages: CoreMessage[],
   updateStatus?: (status: string) => void
 ) => {
-  const tools = await getTools();
+  const tools = {
+    ...(await mainframeTools()),
+    ...(await chargebeeKnowledgeBaseTools()),
+  };
 
   const { text } = await generateText({
     model: openai("gpt-4o"),
