@@ -7,9 +7,8 @@ export const generateResponse = async (
   messages: CoreMessage[],
   updateStatus?: (status: string) => void
 ) => {
-  await fetch("http://localhost:10000/dummy");
   const transport = new StreamableHTTPClientTransport(
-    new URL("http://localhost:10000/api/v1/internal/mcp"),
+    new URL("/api/v1/internal/mcp", process.env.MAINFRAME_API_ROOT),
     {
       requestInit: {
         headers: { "X-Internal-Api-Key": process.env.MAINFRAME_API_KEY! },
