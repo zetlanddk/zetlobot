@@ -1,23 +1,12 @@
 import { openai } from "@ai-sdk/openai";
 import { CoreMessage, generateText, stepCountIs } from "ai";
-import { experimental_createMCPClient as createMCPClient } from "@ai-sdk/mcp";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { getTools } from "./tools";
 
 export const generateResponse = async (
   messages: CoreMessage[],
   updateStatus?: (status: string) => void
 ) => {
-  const transport = new StreamableHTTPClientTransport(
-    new URL("/api/v1/internal/mcp", process.env.MAINFRAME_API_ROOT),
-    {
-      requestInit: {
-        headers: { "X-Internal-Api-Key": process.env.MAINFRAME_API_KEY! },
-      },
-    }
-  );
-
-  const client = await createMCPClient({ transport });
-  const tools = await client.tools();
+  const tools = await getTools();
 
   const { text } = await generateText({
     model: openai("gpt-4o"),
