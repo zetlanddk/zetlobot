@@ -6,9 +6,9 @@ let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
 let cachedTools: any = null;
 
 async function initializeMCPClient() {
-  if (mcpClient && cachedTools) {
-    return { client: mcpClient, tools: cachedTools };
-  }
+  // if (mcpClient && cachedTools) {
+  //   return { client: mcpClient, tools: cachedTools };
+  // }
 
   console.log("Initializing MCP client and tools...");
   
