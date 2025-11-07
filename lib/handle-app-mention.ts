@@ -1,6 +1,7 @@
 import { AppMentionEvent } from "@slack/web-api";
 import { client, getThread } from "./slack-utils";
 import { generateResponse } from "./generate-response";
+import { randomThinkingEmoji } from "./utils";
 
 const updateStatusUtil = async (
   initialStatus: string,
@@ -36,7 +37,7 @@ export async function handleNewAppMention(
   }
 
   const { thread_ts, channel } = event;
-  const updateMessage = await updateStatusUtil("is thinking...", event);
+  const updateMessage = await updateStatusUtil(randomThinkingEmoji(), event);
 
   if (thread_ts) {
     const messages = await getThread(channel, thread_ts, botUserId);

@@ -4,6 +4,7 @@ import type {
 } from "@slack/web-api";
 import { client, getThread, updateStatusUtil } from "./slack-utils";
 import { generateResponse } from "./generate-response";
+import { randomThinkingEmoji } from "./utils";
 
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
@@ -44,7 +45,7 @@ export async function handleNewAssistantMessage(
 
   const { thread_ts, channel } = event;
   const updateStatus = updateStatusUtil(channel, thread_ts);
-  await updateStatus("is thinking...");
+  await updateStatus(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
   const result = await generateResponse(messages, updateStatus);
