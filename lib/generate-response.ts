@@ -20,7 +20,7 @@ export const generateResponse = async (
     system: getSystemPrompt(),
     messages,
     tools,
-    stopWhen: stepCountIs(5),
+    stopWhen: stepCountIs(7),
   });
 
   // Convert markdown to Slack mrkdwn format
