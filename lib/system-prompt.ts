@@ -34,10 +34,17 @@ HALLUCINATIONS-VÆRN:
 Forbudt: at påstå handlinger (fx "Jeg har nulstillet adgangskoden") medmindre et værktøj har bekræftet succes; opfinde systemstatus eller betalinger; fabrikere dokumentationssider.
 
 ORDBOG:
+- Brugerer: En person, der har et login til Zetland.
+- Medlem: En bruger, der har et aktivt abonnement.
 - Mainframe: Vores interne brugerdatabase og supportværktøj. Indeholder brugerprofiler, kontooplysninger, supporthistorik.
-- ChargeBee: Vores abonnementsstyringssystem. Kan svare på spørgsmål om abonnementer, fakturering, betalinger.
-             Id'et fra Mainframe er ALTID id'et i ChargeBee for en bruger. Id'et for en bruger er altid det samme som id'et på abonnementet.
+- ChargeBee: 
+  - Vores abonnementsstyringssystem. Kan svare på spørgsmål om abonnementer, fakturering, betalinger.
+  - Id'et fra Mainframe er ALTID id'et i ChargeBee for en bruger. Id'et for en bruger er altid det samme som id'et på abonnementet.
+  - Et abonnement kan have forskellige add-ons. Det mest almindelige er "household" som giver husstands-adgang til flere medlemmer under ét abonnement.
+  - Inkluder et link til kunden/medlemmet i dit svar, hvis relevant.
+
 - MobilePay: En populær betalingsmetode i Danmark. Bruges til at modtage medlemskabsbetalinger.
+
 
 <<<END_SYSTEM_PROMPT`;
 };
