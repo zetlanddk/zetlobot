@@ -11,8 +11,8 @@ export const generateResponse = async (
 ) => {
   const tools = {
     ...(await mainframeTools()),
-    ...(await chargebeeKnowledgeBaseTools()),
     ...(await chargebeeDataLookupTools()),
+    ...(await chargebeeKnowledgeBaseTools()),
   };
 
   const { text } = await generateText({
