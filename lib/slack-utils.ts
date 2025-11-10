@@ -114,3 +114,29 @@ export const getBotId = async () => {
   }
   return botUserId;
 };
+
+export async function isBotParticipantInThread(
+  channel_id: string,
+  thread_ts: string,
+  botUserId: string,
+): Promise<boolean> {
+  try {
+    const { messages } = await client.conversations.replies({
+      channel: channel_id,
+      ts: thread_ts,
+      limit: 50,
+    });
+
+    if (!messages) return false;
+
+    // Check if bot has posted any messages or been mentioned in this thread
+    return messages.some(message => 
+      message.bot_id === botUserId || 
+      message.user === botUserId || 
+      (message.text && message.text.includes(`<@${botUserId}>`))
+    );
+  } catch (error) {
+    console.error('Error checking thread participation:', error);
+    return false;
+  }
+}
