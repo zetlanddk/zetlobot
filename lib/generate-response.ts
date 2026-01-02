@@ -16,7 +16,7 @@ export const generateResponse = async (
   };
 
   const { text } = await generateText({
-    model: openai("gpt-5-mini"),
+    model: openai("gpt-5.2"),
     system: getSystemPrompt(),
     messages,
     tools,
