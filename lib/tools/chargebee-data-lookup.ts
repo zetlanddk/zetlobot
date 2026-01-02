@@ -14,7 +14,7 @@ async function initializeMCPClient() {
   mcpClient = await createMCPClient({
     transport: {
       type: "http",
-      url: process.env.CHARGEBEE_DATA_LOOKUP_API_URL!,
+      url: process.env.CHARGEBEE_DATA_LOOKUP!,
       headers: {
         Authorization: "Bearer " + process.env.CHARGEBEE_DATA_LOOKUP_API_KEY!,
       },
