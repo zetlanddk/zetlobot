@@ -1,5 +1,4 @@
-import { experimental_createMCPClient as createMCPClient } from "@ai-sdk/mcp";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { createMCPClient } from "@ai-sdk/mcp";
 
 // Global variables to store the client and tools
 let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
@@ -10,17 +9,18 @@ async function initializeMCPClient() {
     return { client: mcpClient, tools: cachedTools };
   }
 
-  console.log("Initializing MCP client and tools...");
-  
-  const transport = new StreamableHTTPClientTransport(
-    new URL(process.env.CHARGEBEE_KNOWLEDGE_BASE!),
-  );
+  console.log("Initializing CHARGEBEE Knowledge Base");
 
-  mcpClient = await createMCPClient({ transport });
+  mcpClient = await createMCPClient({
+    transport: {
+      type: "http",
+      url: process.env.CHARGEBEE_KNOWLEDGE_BASE!,
+    },
+  });
   cachedTools = await mcpClient.tools();
-  
-  console.log("MCP client and tools initialized successfully");
-  
+
+  console.log("CHARGEBEE Knowledge Base tools initialized successfully");
+
   return { client: mcpClient, tools: cachedTools };
 }
 
