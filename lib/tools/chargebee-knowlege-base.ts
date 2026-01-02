@@ -13,7 +13,7 @@ async function initializeMCPClient() {
   console.log("Initializing MCP client and tools...");
   
   const transport = new StreamableHTTPClientTransport(
-    new URL("", process.env.CHARGEBEE_KNOWLEDGE_BASE),
+    new URL(process.env.CHARGEBEE_KNOWLEDGE_BASE!),
   );
 
   mcpClient = await createMCPClient({ transport });

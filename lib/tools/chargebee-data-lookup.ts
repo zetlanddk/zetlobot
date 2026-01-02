@@ -13,7 +13,7 @@ async function initializeMCPClient() {
   console.log("Initializing MCP client and tools...");
   
   const transport = new StreamableHTTPClientTransport(
-    new URL("", process.env.CHARGEBEE_DATA_LOOKUP),
+    new URL(process.env.CHARGEBEE_DATA_LOOKUP!),
     {
       requestInit: {
         headers: { "Authorization": `Bearer ${process.env.CHARGEBEE_DATA_LOOKUP_API_KEY!}` },
