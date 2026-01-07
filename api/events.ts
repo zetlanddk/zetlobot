@@ -25,11 +25,15 @@ function getChannelFromEvent(event: SlackEvent): string | null {
  * Send a message explaining the bot is not available in this channel
  */
 async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string) {
-  const threadTs = 
-    event.type === "app_mention" ? (event.thread_ts ?? event.ts) :
-    event.type === "message" ? (event.thread_ts ?? event.ts) :
-    event.type === "assistant_thread_started" ? event.assistant_thread.thread_ts :
-    undefined;
+  let threadTs: string | undefined;
+  
+  if (event.type === "app_mention") {
+    threadTs = event.thread_ts ?? event.ts;
+  } else if (event.type === "message" && "ts" in event) {
+    threadTs = ("thread_ts" in event ? event.thread_ts : undefined) ?? event.ts;
+  } else if (event.type === "assistant_thread_started") {
+    threadTs = event.assistant_thread.thread_ts;
+  }
 
   await client.chat.postMessage({
     channel: channelId,
