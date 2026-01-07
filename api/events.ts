@@ -5,7 +5,7 @@ import {
 } from "../lib/handle-messages";
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
-import { verifyRequest, getBotId } from "../lib/slack-utils";
+import { verifyRequest, getBotId, client } from "../lib/slack-utils";
 import { isChannelWhitelisted } from "../lib/utils";
 
 /**
@@ -19,6 +19,23 @@ function getChannelFromEvent(event: SlackEvent): string | null {
     return event.assistant_thread.channel_id;
   }
   return null;
+}
+
+/**
+ * Send a message explaining the bot is not available in this channel
+ */
+async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string) {
+  const threadTs = 
+    event.type === "app_mention" ? (event.thread_ts ?? event.ts) :
+    event.type === "message" ? (event.thread_ts ?? event.ts) :
+    event.type === "assistant_thread_started" ? event.assistant_thread.thread_ts :
+    undefined;
+
+  await client.chat.postMessage({
+    channel: channelId,
+    thread_ts: threadTs,
+    text: "🚫 Sorry, I'm not configured to respond in this channel. Please contact an administrator if you believe this is an error.",
+  });
 }
 
 export async function POST(request: Request) {
@@ -39,7 +56,8 @@ export async function POST(request: Request) {
     // Check channel whitelist
     const channelId = getChannelFromEvent(event);
     if (channelId && !isChannelWhitelisted(channelId)) {
-      console.log(`Channel ${channelId} is not whitelisted, ignoring event`);
+      console.log(`Channel ${channelId} is not whitelisted, sending rejection message`);
+      waitUntil(sendChannelNotAllowedMessage(event, channelId));
       return new Response("Channel not whitelisted", { status: 200 });
     }
 
