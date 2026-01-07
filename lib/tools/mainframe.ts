@@ -1,5 +1,6 @@
 import { experimental_createMCPClient as createMCPClient } from "@ai-sdk/mcp";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { getRequiredEnv } from "../utils";
 
 // Global variables to store the client and tools
 let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
@@ -11,12 +12,15 @@ async function initializeMCPClient() {
   }
 
   console.log("Initializing MCP client and tools...");
+
+  const apiRoot = getRequiredEnv("MAINFRAME_API_ROOT");
+  const apiKey = getRequiredEnv("MAINFRAME_API_KEY");
   
   const transport = new StreamableHTTPClientTransport(
-    new URL("/api/v1/internal/mcp", process.env.MAINFRAME_API_ROOT),
+    new URL("/api/v1/internal/mcp", apiRoot),
     {
       requestInit: {
-        headers: { "X-Internal-Api-Key": process.env.MAINFRAME_API_KEY! },
+        headers: { "X-Internal-Api-Key": apiKey },
       },
     }
   );
