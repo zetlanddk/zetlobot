@@ -2,9 +2,33 @@ import type {
   AssistantThreadStartedEvent,
   GenericMessageEvent,
 } from "@slack/web-api";
-import { client, getThread, updateStatusUtil } from "./slack-utils";
+import { client, getThread } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
+
+const updateStatusUtil = async (
+  channel: string,
+  thread_ts: string,
+  initialStatus: string,
+) => {
+  const initialMessage = await client.chat.postMessage({
+    channel: channel,
+    thread_ts: thread_ts,
+    text: initialStatus,
+  });
+
+  if (!initialMessage || !initialMessage.ts)
+    throw new Error("Failed to post initial message");
+
+  const updateMessage = async (status: string) => {
+    await client.chat.update({
+      channel: channel,
+      ts: initialMessage.ts as string,
+      text: status,
+    });
+  };
+  return updateMessage;
+};
 
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
@@ -44,8 +68,7 @@ export async function handleNewAssistantMessage(
     return;
 
   const { thread_ts, channel } = event;
-  const updateStatus = updateStatusUtil(channel, thread_ts);
-  await updateStatus(randomThinkingEmoji());
+  const updateStatus = await updateStatusUtil(channel, thread_ts, randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
   const result = await generateResponse(messages, updateStatus);
@@ -65,6 +88,28 @@ export async function handleNewAssistantMessage(
       },
     ],
   });
+}
 
-  await updateStatus("");
+/**
+ * Handle messages in a thread where the bot has previously participated.
+ * This allows users to continue conversations without re-tagging the bot.
+ */
+export async function handleThreadReply(
+  event: GenericMessageEvent,
+  botUserId: string,
+) {
+  console.log("Handling thread reply");
+  
+  const { thread_ts, channel } = event;
+  
+  if (!thread_ts) {
+    console.log("No thread_ts, skipping");
+    return;
+  }
+
+  const updateMessage = await updateStatusUtil(channel, thread_ts, randomThinkingEmoji());
+
+  const messages = await getThread(channel, thread_ts, botUserId);
+  const result = await generateResponse(messages, updateMessage);
+  await updateMessage(result);
 }

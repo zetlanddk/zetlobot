@@ -2,10 +2,11 @@ import type { SlackEvent } from "@slack/web-api";
 import {
   assistantThreadMessage,
   handleNewAssistantMessage,
+  handleThreadReply,
 } from "../lib/handle-messages";
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
-import { verifyRequest, getBotId, client } from "../lib/slack-utils";
+import { verifyRequest, getBotId, client, hasBotParticipatedInThread } from "../lib/slack-utils";
 import { isChannelWhitelisted } from "../lib/utils";
 
 /**
@@ -99,6 +100,28 @@ export async function POST(request: Request) {
       event.bot_id !== botUserId
     ) {
       waitUntil(handleNewAssistantMessage(event, botUserId));
+    }
+
+    // Handle thread replies in channels where the bot has participated
+    if (
+      event.type === "message" &&
+      !event.subtype &&
+      event.channel_type === "channel" &&
+      !event.bot_id &&
+      !event.bot_profile &&
+      event.thread_ts // Only handle messages that are replies in a thread
+    ) {
+      // Check if the bot has participated in this thread
+      const botParticipated = await hasBotParticipatedInThread(
+        event.channel,
+        event.thread_ts,
+        botUserId
+      );
+      
+      if (botParticipated) {
+        console.log(`Bot has participated in thread ${event.thread_ts}, responding to reply`);
+        waitUntil(handleThreadReply(event, botUserId));
+      }
     }
 
     return new Response("Success!", { status: 200 });
