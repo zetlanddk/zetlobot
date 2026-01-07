@@ -6,6 +6,34 @@ import { client, getThread, updateStatusUtil } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 
+/**
+ * Posts an initial message and returns a function to update it.
+ * Used for channel threads (not assistant threads).
+ */
+const postAndUpdateMessage = async (
+  channel: string,
+  thread_ts: string,
+  initialText: string,
+) => {
+  const initialMessage = await client.chat.postMessage({
+    channel: channel,
+    thread_ts: thread_ts,
+    text: initialText,
+  });
+
+  if (!initialMessage || !initialMessage.ts)
+    throw new Error("Failed to post initial message");
+
+  const updateMessage = async (text: string) => {
+    await client.chat.update({
+      channel: channel,
+      ts: initialMessage.ts as string,
+      text: text,
+    });
+  };
+  return updateMessage;
+};
+
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
 ) {
@@ -44,11 +72,11 @@ export async function handleNewAssistantMessage(
     return;
 
   const { thread_ts, channel } = event;
-  const updateStatus = updateStatusUtil(channel, thread_ts);
-  await updateStatus(randomThinkingEmoji());
+  const updateMessage = updateStatusUtil(channel, thread_ts);
+  await updateMessage(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
-  const result = await generateResponse(messages, updateStatus);
+  const result = await generateResponse(messages, updateMessage);
 
   await client.chat.postMessage({
     channel: channel,
@@ -66,5 +94,44 @@ export async function handleNewAssistantMessage(
     ],
   });
 
-  await updateStatus("");
+  await updateMessage("");
+}
+
+/**
+ * Handle messages in a thread where the bot has previously participated.
+ * This allows users to continue conversations without re-tagging the bot.
+ */
+export async function handleThreadReply(
+  event: GenericMessageEvent,
+  botUserId: string,
+) {
+  console.log("Handling thread reply");
+  
+  const { thread_ts, channel } = event;
+  
+  if (!thread_ts) {
+    console.log("No thread_ts, skipping");
+    return;
+  }
+
+  let updateMessage: ((text: string) => Promise<void>) | null = null;
+
+  try {
+    updateMessage = await postAndUpdateMessage(channel, thread_ts, randomThinkingEmoji());
+
+    const messages = await getThread(channel, thread_ts, botUserId);
+    const result = await generateResponse(messages, updateMessage);
+    await updateMessage(result);
+  } catch (error) {
+    console.error("Error handling thread reply:", error);
+    
+    // Try to update the message with an error indicator if we have the updater
+    if (updateMessage) {
+      try {
+        await updateMessage("❌ Sorry, something went wrong. Please try again.");
+      } catch {
+        // Ignore errors when trying to show the error message
+      }
+    }
+  }
 }

@@ -114,3 +114,31 @@ export const getBotId = async () => {
   }
   return botUserId;
 };
+
+/**
+ * Check if the bot has participated in a thread.
+ * Uses a limited fetch to reduce API overhead on active threads.
+ * Note: For very long threads where the bot was mentioned many messages ago,
+ * users may need to re-mention the bot to continue the conversation.
+ */
+export async function hasBotParticipatedInThread(
+  channel_id: string,
+  thread_ts: string,
+  botUserId: string,
+): Promise<boolean> {
+  try {
+    const { messages } = await client.conversations.replies({
+      channel: channel_id,
+      ts: thread_ts,
+      limit: 15,
+    });
+
+    if (!messages) return false;
+
+    // Check if any message is from our specific bot by user ID
+    return messages.some((message) => message.user === botUserId);
+  } catch (error) {
+    console.error("Error checking bot participation in thread:", error);
+    return false;
+  }
+}
