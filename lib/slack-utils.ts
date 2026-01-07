@@ -116,7 +116,10 @@ export const getBotId = async () => {
 };
 
 /**
- * Check if the bot has participated in a thread
+ * Check if the bot has participated in a thread.
+ * Uses a limited fetch to reduce API overhead on active threads.
+ * Note: For very long threads where the bot was mentioned many messages ago,
+ * users may need to re-mention the bot to continue the conversation.
  */
 export async function hasBotParticipatedInThread(
   channel_id: string,
@@ -127,7 +130,7 @@ export async function hasBotParticipatedInThread(
     const { messages } = await client.conversations.replies({
       channel: channel_id,
       ts: thread_ts,
-      limit: 50,
+      limit: 15,
     });
 
     if (!messages) return false;
