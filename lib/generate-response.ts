@@ -5,10 +5,7 @@ import { getTools as chargebeeKnowledgeBaseTools } from "./tools/chargebee-knowl
 import { getTools as chargebeeDataLookupTools } from "./tools/chargebee-data-lookup";
 import { getSystemPrompt } from "./system-prompt";
 
-export const generateResponse = async (
-  messages: ModelMessage[],
-  updateStatus?: (status: string) => void
-) => {
+export const generateResponse = async (messages: ModelMessage[]) => {
   const tools = {
     ...(await mainframeTools()),
     ...(await chargebeeDataLookupTools()),

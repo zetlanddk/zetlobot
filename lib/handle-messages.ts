@@ -42,7 +42,7 @@ export async function handleNewAssistantMessage(
   await updateStatus(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
-  const result = await generateResponse(messages, updateStatus);
+  const result = await generateResponse(messages);
 
   await client.chat.postMessage({
     channel: channel,
