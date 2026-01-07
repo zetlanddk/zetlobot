@@ -1,37 +1,18 @@
-import { createMCPClient } from "@ai-sdk/mcp";
 import { getRequiredEnv } from "../utils";
+import { createMCPTool } from "./create-mcp-tool";
 
-// Global variables to store the client and tools
-let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
-let cachedTools: any = null;
+const url = getRequiredEnv("CHARGEBEE_DATA_LOOKUP");
+const apiKey = getRequiredEnv("CHARGEBEE_DATA_LOOKUP_API_KEY");
 
-async function initializeMCPClient() {
-  if (mcpClient && cachedTools) {
-    return { client: mcpClient, tools: cachedTools };
-  }
-
-  console.log("Initializing CHARGEBEE Data Lookup");
-
-  const url = getRequiredEnv("CHARGEBEE_DATA_LOOKUP");
-  const apiKey = getRequiredEnv("CHARGEBEE_DATA_LOOKUP_API_KEY");
-
-  mcpClient = await createMCPClient({
-    transport: {
-      type: "http",
-      url,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
+const chargebeeDataLookup = createMCPTool({
+  name: "Chargebee Data Lookup",
+  transport: {
+    type: "http",
+    url,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
     },
-  });
-  cachedTools = await mcpClient.tools();
+  },
+});
 
-  console.log("CHARGEBEE Data Lookup tools initialized successfully");
-
-  return { client: mcpClient, tools: cachedTools };
-}
-
-export async function getTools() {
-  const { tools } = await initializeMCPClient();
-  return tools;
-}
+export const getTools = chargebeeDataLookup.getTools;

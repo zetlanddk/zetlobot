@@ -1,33 +1,14 @@
-import { createMCPClient } from "@ai-sdk/mcp";
 import { getRequiredEnv } from "../utils";
+import { createMCPTool } from "./create-mcp-tool";
 
-// Global variables to store the client and tools
-let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
-let cachedTools: any = null;
+const url = getRequiredEnv("CHARGEBEE_KNOWLEDGE_BASE");
 
-async function initializeMCPClient() {
-  if (mcpClient && cachedTools) {
-    return { client: mcpClient, tools: cachedTools };
-  }
+const chargebeeKnowledgeBase = createMCPTool({
+  name: "Chargebee Knowledge Base",
+  transport: {
+    type: "http",
+    url,
+  },
+});
 
-  console.log("Initializing CHARGEBEE Knowledge Base");
-
-  const url = getRequiredEnv("CHARGEBEE_KNOWLEDGE_BASE");
-
-  mcpClient = await createMCPClient({
-    transport: {
-      type: "http",
-      url,
-    },
-  });
-  cachedTools = await mcpClient.tools();
-
-  console.log("CHARGEBEE Knowledge Base tools initialized successfully");
-
-  return { client: mcpClient, tools: cachedTools };
-}
-
-export async function getTools() {
-  const { tools } = await initializeMCPClient();
-  return tools;
-}
+export const getTools = chargebeeKnowledgeBase.getTools;
