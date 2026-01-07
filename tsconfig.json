@@ -6,12 +6,13 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "outDir": "./dist",
+    "outDir": "./dist"
   },
   "exclude": [
-    "node_modules",
+    "node_modules"
   ],
   "include": [
-    "api"
+    "api",
+    "lib"
   ]
 }
