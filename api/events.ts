@@ -6,6 +6,20 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
 import { verifyRequest, getBotId } from "../lib/slack-utils";
+import { isChannelWhitelisted } from "../lib/utils";
+
+/**
+ * Extract channel ID from various Slack event types
+ */
+function getChannelFromEvent(event: SlackEvent): string | null {
+  if (event.type === "app_mention" || event.type === "message") {
+    return event.channel;
+  }
+  if (event.type === "assistant_thread_started") {
+    return event.assistant_thread.channel_id;
+  }
+  return null;
+}
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -20,9 +34,16 @@ export async function POST(request: Request) {
   await verifyRequest({ requestType, request, rawBody });
 
   try {
-    const botUserId = await getBotId();
-
     const event = payload.event as SlackEvent;
+
+    // Check channel whitelist
+    const channelId = getChannelFromEvent(event);
+    if (channelId && !isChannelWhitelisted(channelId)) {
+      console.log(`Channel ${channelId} is not whitelisted, ignoring event`);
+      return new Response("Channel not whitelisted", { status: 200 });
+    }
+
+    const botUserId = await getBotId();
 
     if (event.type === "app_mention") {
       waitUntil(handleNewAppMention(event, botUserId));
