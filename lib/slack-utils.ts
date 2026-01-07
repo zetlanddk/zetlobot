@@ -132,10 +132,8 @@ export async function hasBotParticipatedInThread(
 
     if (!messages) return false;
 
-    return messages.some((message) => {
-      // Check if message is from our bot by user ID or bot_id
-      return message.user === botUserId || message.bot_id !== undefined;
-    });
+    // Check if any message is from our specific bot by user ID
+    return messages.some((message) => message.user === botUserId);
   } catch (error) {
     console.error("Error checking bot participation in thread:", error);
     return false;
