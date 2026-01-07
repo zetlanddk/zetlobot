@@ -2,11 +2,15 @@ import type {
   AssistantThreadStartedEvent,
   GenericMessageEvent,
 } from "@slack/web-api";
-import { client, getThread } from "./slack-utils";
+import { client, getThread, updateStatusUtil } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 
-const updateStatusUtil = async (
+/**
+ * Posts an initial message and returns a function to update it.
+ * Used for channel threads (not assistant threads).
+ */
+const postAndUpdateMessage = async (
   channel: string,
   thread_ts: string,
   initialStatus: string,
@@ -68,7 +72,8 @@ export async function handleNewAssistantMessage(
     return;
 
   const { thread_ts, channel } = event;
-  const updateStatus = await updateStatusUtil(channel, thread_ts, randomThinkingEmoji());
+  const updateStatus = updateStatusUtil(channel, thread_ts);
+  await updateStatus(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
   const result = await generateResponse(messages, updateStatus);
@@ -88,6 +93,8 @@ export async function handleNewAssistantMessage(
       },
     ],
   });
+
+  await updateStatus("");
 }
 
 /**
@@ -107,7 +114,7 @@ export async function handleThreadReply(
     return;
   }
 
-  const updateMessage = await updateStatusUtil(channel, thread_ts, randomThinkingEmoji());
+  const updateMessage = await postAndUpdateMessage(channel, thread_ts, randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
   const result = await generateResponse(messages, updateMessage);
