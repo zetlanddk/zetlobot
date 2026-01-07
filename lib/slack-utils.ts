@@ -105,11 +105,20 @@ export async function getThread(
   return result;
 }
 
+// Cache the bot ID to avoid API calls on every request
+let cachedBotId: string | null = null;
+
 export const getBotId = async () => {
+  if (cachedBotId) {
+    return cachedBotId;
+  }
+
   const { user_id: botUserId } = await client.auth.test();
 
   if (!botUserId) {
     throw new Error("botUserId is undefined");
   }
+
+  cachedBotId = botUserId;
   return botUserId;
 };
