@@ -111,17 +111,26 @@ export async function POST(request: Request) {
       !event.bot_profile &&
       event.thread_ts // Only handle messages that are replies in a thread
     ) {
-      // Check if the bot has participated in this thread
-      const botParticipated = await hasBotParticipatedInThread(
-        event.channel,
-        event.thread_ts,
-        botUserId
+      // Capture thread_ts before async to satisfy TypeScript narrowing
+      const threadTs = event.thread_ts;
+      const channel = event.channel;
+
+      // Move participation check inside waitUntil to avoid blocking the HTTP response
+      // Slack expects a 200 response within 3 seconds
+      waitUntil(
+        (async () => {
+          const botParticipated = await hasBotParticipatedInThread(
+            channel,
+            threadTs,
+            botUserId
+          );
+
+          if (botParticipated) {
+            console.log(`Bot has participated in thread ${threadTs}, responding to reply`);
+            await handleThreadReply(event, botUserId);
+          }
+        })()
       );
-      
-      if (botParticipated) {
-        console.log(`Bot has participated in thread ${event.thread_ts}, responding to reply`);
-        waitUntil(handleThreadReply(event, botUserId));
-      }
     }
 
     return new Response("Success!", { status: 200 });
