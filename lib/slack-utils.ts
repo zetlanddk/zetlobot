@@ -58,7 +58,11 @@ export const verifyRequest = async ({
   }
 };
 
-export const updateStatusUtil = (channel: string, thread_ts: string) => {
+/**
+ * Creates a function to update the Slack Assistant thread status indicator.
+ * Used to show typing/thinking indicators in assistant threads.
+ */
+export const createAssistantStatusUpdater = (channel: string, thread_ts: string) => {
   return async (status: string) => {
     await client.assistant.threads.setStatus({
       channel_id: channel,

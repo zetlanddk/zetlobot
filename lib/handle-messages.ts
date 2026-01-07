@@ -2,7 +2,7 @@ import type {
   AssistantThreadStartedEvent,
   GenericMessageEvent,
 } from "@slack/web-api";
-import { client, getThread, updateStatusUtil } from "./slack-utils";
+import { client, getThread, createAssistantStatusUpdater } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 
@@ -38,7 +38,7 @@ export async function handleNewAssistantMessage(
   if (!event.thread_ts) return;
 
   const { thread_ts, channel } = event;
-  const updateStatus = updateStatusUtil(channel, thread_ts);
+  const updateStatus = createAssistantStatusUpdater(channel, thread_ts);
   await updateStatus(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);

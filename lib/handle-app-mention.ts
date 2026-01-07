@@ -3,7 +3,11 @@ import { client, getThread } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 
-const updateStatusUtil = async (
+/**
+ * Posts an initial message and returns a function to update it.
+ * Used for showing a "thinking" indicator that gets replaced with the response.
+ */
+const createMessageUpdater = async (
   initialStatus: string,
   event: AppMentionEvent,
 ) => {
@@ -34,7 +38,7 @@ export async function handleNewAppMention(
   console.log("Handling app mention");
 
   const { thread_ts, channel } = event;
-  const updateMessage = await updateStatusUtil(randomThinkingEmoji(), event);
+  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), event);
 
   if (thread_ts) {
     const messages = await getThread(channel, thread_ts, botUserId);
