@@ -1,10 +1,11 @@
 import { WebClient } from '@slack/web-api';
 import { ModelMessage } from 'ai'
 import crypto from 'crypto'
+import { getRequiredEnv } from './utils'
 
-const signingSecret = process.env.SLACK_SIGNING_SECRET!
+const signingSecret = getRequiredEnv('SLACK_SIGNING_SECRET');
 
-export const client = new WebClient(process.env.SLACK_BOT_TOKEN);
+export const client = new WebClient(getRequiredEnv('SLACK_BOT_TOKEN'));
 
 // See https://api.slack.com/authentication/verifying-requests-from-slack
 export async function isValidSlackRequest({
@@ -45,21 +46,23 @@ export async function isValidSlackRequest({
 }
 
 export const verifyRequest = async ({
-  requestType,
   request,
   rawBody,
 }: {
-  requestType: string;
   request: Request;
   rawBody: string;
 }) => {
   const validRequest = await isValidSlackRequest({ request, rawBody });
-  if (!validRequest || requestType !== "event_callback") {
-    return new Response("Invalid request", { status: 400 });
+  if (!validRequest) {
+    throw new Error("Invalid Slack request signature");
   }
 };
 
-export const updateStatusUtil = (channel: string, thread_ts: string) => {
+/**
+ * Creates a function to update the Slack Assistant thread status indicator.
+ * Used to show typing/thinking indicators in assistant threads.
+ */
+export const createAssistantStatusUpdater = (channel: string, thread_ts: string) => {
   return async (status: string) => {
     await client.assistant.threads.setStatus({
       channel_id: channel,
@@ -106,11 +109,20 @@ export async function getThread(
   return result;
 }
 
+// Cache the bot ID to avoid API calls on every request
+let cachedBotId: string | null = null;
+
 export const getBotId = async () => {
+  if (cachedBotId) {
+    return cachedBotId;
+  }
+
   const { user_id: botUserId } = await client.auth.test();
 
   if (!botUserId) {
     throw new Error("botUserId is undefined");
   }
+
+  cachedBotId = botUserId;
   return botUserId;
 };

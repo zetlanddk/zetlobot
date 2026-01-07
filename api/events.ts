@@ -54,7 +54,14 @@ async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
-  const payload = JSON.parse(rawBody);
+  
+  let payload: any;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new Response("Invalid JSON payload", { status: 400 });
+  }
+
   const requestType = payload.type as "url_verification" | "event_callback";
 
   // See https://api.slack.com/events/url_verification
@@ -62,7 +69,18 @@ export async function POST(request: Request) {
     return new Response(payload.challenge, { status: 200 });
   }
 
-  await verifyRequest({ requestType, request, rawBody });
+  // Verify the request signature before processing
+  try {
+    await verifyRequest({ request, rawBody });
+  } catch (error) {
+    console.error("Request verification failed:", error);
+    return new Response("Invalid request signature", { status: 401 });
+  }
+
+  // Only process event_callback requests
+  if (requestType !== "event_callback") {
+    return new Response("Unsupported request type", { status: 400 });
+  }
 
   try {
     const event = payload.event as SlackEvent;
@@ -90,13 +108,11 @@ export async function POST(request: Request) {
       waitUntil(assistantThreadMessage(event));
     }
 
+    // Bot messages are already filtered by isFromBot() above
     if (
       event.type === "message" &&
       !event.subtype &&
-      event.channel_type === "im" &&
-      !event.bot_id &&
-      !event.bot_profile &&
-      event.bot_id !== botUserId
+      event.channel_type === "im"
     ) {
       waitUntil(handleNewAssistantMessage(event, botUserId));
     }

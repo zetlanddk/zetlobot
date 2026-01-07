@@ -1,4 +1,5 @@
 import { createMCPClient } from "@ai-sdk/mcp";
+import { getRequiredEnv } from "../utils";
 
 // Global variables to store the client and tools
 let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
@@ -11,12 +12,15 @@ async function initializeMCPClient() {
 
   console.log("Initializing CHARGEBEE Data Lookup");
 
+  const url = getRequiredEnv("CHARGEBEE_DATA_LOOKUP");
+  const apiKey = getRequiredEnv("CHARGEBEE_DATA_LOOKUP_API_KEY");
+
   mcpClient = await createMCPClient({
     transport: {
       type: "http",
-      url: process.env.CHARGEBEE_DATA_LOOKUP!,
+      url,
       headers: {
-        Authorization: "Bearer " + process.env.CHARGEBEE_DATA_LOOKUP_API_KEY!,
+        Authorization: `Bearer ${apiKey}`,
       },
     },
   });

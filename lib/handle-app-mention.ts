@@ -3,7 +3,11 @@ import { client, getThread } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 
-const updateStatusUtil = async (
+/**
+ * Posts an initial message and returns a function to update it.
+ * Used for showing a "thinking" indicator that gets replaced with the response.
+ */
+const createMessageUpdater = async (
   initialStatus: string,
   event: AppMentionEvent,
 ) => {
@@ -30,24 +34,18 @@ export async function handleNewAppMention(
   event: AppMentionEvent,
   botUserId: string,
 ) {
+  // Note: Bot messages are filtered at the event handler level in api/events.ts
   console.log("Handling app mention");
-  if (event.bot_id || event.bot_id === botUserId || event.bot_profile) {
-    console.log("Skipping app mention");
-    return;
-  }
 
   const { thread_ts, channel } = event;
-  const updateMessage = await updateStatusUtil(randomThinkingEmoji(), event);
+  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), event);
 
   if (thread_ts) {
     const messages = await getThread(channel, thread_ts, botUserId);
-    const result = await generateResponse(messages, updateMessage);
+    const result = await generateResponse(messages);
     await updateMessage(result);
   } else {
-    const result = await generateResponse(
-      [{ role: "user", content: event.text }],
-      updateMessage,
-    );
+    const result = await generateResponse([{ role: "user", content: event.text }]);
     await updateMessage(result);
   }
 }
