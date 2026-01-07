@@ -11,7 +11,6 @@ export async function assistantThreadMessage(
 ) {
   const { channel_id, thread_ts } = event.assistant_thread;
   console.log(`Thread started: ${channel_id} ${thread_ts}`);
-  console.log(JSON.stringify(event));
 
   await client.chat.postMessage({
     channel: channel_id,
