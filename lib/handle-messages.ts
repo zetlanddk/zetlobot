@@ -13,22 +13,22 @@ import { randomThinkingEmoji } from "./utils";
 const postAndUpdateMessage = async (
   channel: string,
   thread_ts: string,
-  initialStatus: string,
+  initialText: string,
 ) => {
   const initialMessage = await client.chat.postMessage({
     channel: channel,
     thread_ts: thread_ts,
-    text: initialStatus,
+    text: initialText,
   });
 
   if (!initialMessage || !initialMessage.ts)
     throw new Error("Failed to post initial message");
 
-  const updateMessage = async (status: string) => {
+  const updateMessage = async (text: string) => {
     await client.chat.update({
       channel: channel,
       ts: initialMessage.ts as string,
-      text: status,
+      text: text,
     });
   };
   return updateMessage;
@@ -72,11 +72,11 @@ export async function handleNewAssistantMessage(
     return;
 
   const { thread_ts, channel } = event;
-  const updateStatus = updateStatusUtil(channel, thread_ts);
-  await updateStatus(randomThinkingEmoji());
+  const updateMessage = updateStatusUtil(channel, thread_ts);
+  await updateMessage(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
-  const result = await generateResponse(messages, updateStatus);
+  const result = await generateResponse(messages, updateMessage);
 
   await client.chat.postMessage({
     channel: channel,
@@ -94,7 +94,7 @@ export async function handleNewAssistantMessage(
     ],
   });
 
-  await updateStatus("");
+  await updateMessage("");
 }
 
 /**
