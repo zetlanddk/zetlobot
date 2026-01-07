@@ -34,13 +34,8 @@ export async function handleNewAssistantMessage(
   event: GenericMessageEvent,
   botUserId: string,
 ) {
-  if (
-    event.bot_id ||
-    event.bot_id === botUserId ||
-    event.bot_profile ||
-    !event.thread_ts
-  )
-    return;
+  // Note: Bot messages are filtered at the event handler level in api/events.ts
+  if (!event.thread_ts) return;
 
   const { thread_ts, channel } = event;
   const updateStatus = updateStatusUtil(channel, thread_ts);

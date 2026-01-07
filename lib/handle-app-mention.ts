@@ -30,11 +30,8 @@ export async function handleNewAppMention(
   event: AppMentionEvent,
   botUserId: string,
 ) {
+  // Note: Bot messages are filtered at the event handler level in api/events.ts
   console.log("Handling app mention");
-  if (event.bot_id || event.bot_id === botUserId || event.bot_profile) {
-    console.log("Skipping app mention");
-    return;
-  }
 
   const { thread_ts, channel } = event;
   const updateMessage = await updateStatusUtil(randomThinkingEmoji(), event);

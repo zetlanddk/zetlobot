@@ -6,13 +6,6 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
 import { verifyRequest, getBotId, client } from "../lib/slack-utils";
-
-class SlackVerificationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SlackVerificationError";
-  }
-}
 import { isChannelWhitelisted } from "../lib/utils";
 
 /**
@@ -115,13 +108,11 @@ export async function POST(request: Request) {
       waitUntil(assistantThreadMessage(event));
     }
 
+    // Bot messages are already filtered by isFromBot() above
     if (
       event.type === "message" &&
       !event.subtype &&
-      event.channel_type === "im" &&
-      !event.bot_id &&
-      !event.bot_profile &&
-      event.bot_id !== botUserId
+      event.channel_type === "im"
     ) {
       waitUntil(handleNewAssistantMessage(event, botUserId));
     }
