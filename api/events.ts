@@ -22,6 +22,16 @@ function getChannelFromEvent(event: SlackEvent): string | null {
 }
 
 /**
+ * Check if an event is from a bot (to avoid infinite loops)
+ */
+function isFromBot(event: SlackEvent): boolean {
+  if (event.type === "app_mention" || event.type === "message") {
+    return Boolean("bot_id" in event && event.bot_id) || Boolean("bot_profile" in event && event.bot_profile);
+  }
+  return false;
+}
+
+/**
  * Send a message explaining the bot is not available in this channel
  */
 async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string) {
@@ -56,6 +66,11 @@ export async function POST(request: Request) {
 
   try {
     const event = payload.event as SlackEvent;
+
+    // Skip bot messages to avoid infinite loops
+    if (isFromBot(event)) {
+      return new Response("Ignoring bot message", { status: 200 });
+    }
 
     // Check channel whitelist
     const channelId = getChannelFromEvent(event);
