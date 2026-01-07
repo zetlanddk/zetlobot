@@ -5,7 +5,42 @@ import {
 } from "../lib/handle-messages";
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
-import { verifyRequest, getBotId } from "../lib/slack-utils";
+import { verifyRequest, getBotId, client } from "../lib/slack-utils";
+import { isChannelWhitelisted } from "../lib/utils";
+
+/**
+ * Extract channel ID from various Slack event types
+ */
+function getChannelFromEvent(event: SlackEvent): string | null {
+  if (event.type === "app_mention" || event.type === "message") {
+    return event.channel;
+  }
+  if (event.type === "assistant_thread_started") {
+    return event.assistant_thread.channel_id;
+  }
+  return null;
+}
+
+/**
+ * Send a message explaining the bot is not available in this channel
+ */
+async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string) {
+  let threadTs: string | undefined;
+  
+  if (event.type === "app_mention") {
+    threadTs = event.thread_ts ?? event.ts;
+  } else if (event.type === "message" && "ts" in event) {
+    threadTs = ("thread_ts" in event ? event.thread_ts : undefined) ?? event.ts;
+  } else if (event.type === "assistant_thread_started") {
+    threadTs = event.assistant_thread.thread_ts;
+  }
+
+  await client.chat.postMessage({
+    channel: channelId,
+    thread_ts: threadTs,
+    text: "🚫 Sorry, I'm not configured to respond in this channel. Please contact an administrator if you believe this is an error.",
+  });
+}
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -20,9 +55,17 @@ export async function POST(request: Request) {
   await verifyRequest({ requestType, request, rawBody });
 
   try {
-    const botUserId = await getBotId();
-
     const event = payload.event as SlackEvent;
+
+    // Check channel whitelist
+    const channelId = getChannelFromEvent(event);
+    if (channelId && !isChannelWhitelisted(channelId)) {
+      console.log(`Channel ${channelId} is not whitelisted, sending rejection message`);
+      waitUntil(sendChannelNotAllowedMessage(event, channelId));
+      return new Response("Channel not whitelisted", { status: 200 });
+    }
+
+    const botUserId = await getBotId();
 
     if (event.type === "app_mention") {
       waitUntil(handleNewAppMention(event, botUserId));

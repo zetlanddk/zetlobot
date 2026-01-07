@@ -82,9 +82,16 @@ OPENAI_API_KEY=your-openai-api-key
 
 # Exa API Key (for web search functionality)
 EXA_API_KEY=your-exa-api-key
+
+# Channel Whitelist (optional)
+# Comma-separated list of Slack channel IDs where the bot is allowed to respond
+# If not set, the bot will respond in all channels
+ALLOWED_CHANNEL_IDS=C01234567,C89012345
 ```
 
 Replace the placeholder values with your actual tokens.
+
+> **Note**: To find a channel ID in Slack, right-click on a channel name, select "View channel details", and scroll down to find the Channel ID.
 
 ## Local Development
 
@@ -121,6 +128,7 @@ Make sure to modify the [subscription URL](./README.md/#enable-slack-events) to 
    - `SLACK_SIGNING_SECRET`
    - `OPENAI_API_KEY`
    - `EXA_API_KEY`
+   - `ALLOWED_CHANNEL_IDS` (optional - comma-separated channel IDs to whitelist)
 
 4. After deployment, Vercel will provide you with a production URL
 
