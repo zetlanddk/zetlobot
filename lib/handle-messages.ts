@@ -114,9 +114,24 @@ export async function handleThreadReply(
     return;
   }
 
-  const updateMessage = await postAndUpdateMessage(channel, thread_ts, randomThinkingEmoji());
+  let updateMessage: ((text: string) => Promise<void>) | null = null;
 
-  const messages = await getThread(channel, thread_ts, botUserId);
-  const result = await generateResponse(messages, updateMessage);
-  await updateMessage(result);
+  try {
+    updateMessage = await postAndUpdateMessage(channel, thread_ts, randomThinkingEmoji());
+
+    const messages = await getThread(channel, thread_ts, botUserId);
+    const result = await generateResponse(messages, updateMessage);
+    await updateMessage(result);
+  } catch (error) {
+    console.error("Error handling thread reply:", error);
+    
+    // Try to update the message with an error indicator if we have the updater
+    if (updateMessage) {
+      try {
+        await updateMessage("❌ Sorry, something went wrong. Please try again.");
+      } catch {
+        // Ignore errors when trying to show the error message
+      }
+    }
+  }
 }
