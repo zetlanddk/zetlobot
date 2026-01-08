@@ -13,7 +13,7 @@ export const generateResponse = async (messages: ModelMessage[]) => {
   };
 
   const { text } = await generateText({
-    model: google("gemini-pro-latest"),
+    model: google("gemini-2.5-flash"),
     system: getSystemPrompt(),
     messages,
     tools,
