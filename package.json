@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ai-sdk/google": "^3.0.6",
     "@ai-sdk/mcp": "^1.0.2",
     "@ai-sdk/openai": "^3.0.2",
     "@modelcontextprotocol/sdk": "^1.25.1",
