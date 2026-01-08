@@ -1,4 +1,5 @@
 import { google } from '@ai-sdk/google';
+import { openai } from "@ai-sdk/openai";
 import { ModelMessage, generateText, stepCountIs } from "ai";
 import { getTools as mainframeTools } from "./tools/mainframe";
 import { getTools as chargebeeKnowledgeBaseTools } from "./tools/chargebee-knowledge-base";
@@ -13,7 +14,7 @@ export const generateResponse = async (messages: ModelMessage[]) => {
   };
 
   const { text } = await generateText({
-    model: google("gemini-2.5-flash"),
+    model: openai("gpt-5.2"),
     system: getSystemPrompt(),
     messages,
     tools,
