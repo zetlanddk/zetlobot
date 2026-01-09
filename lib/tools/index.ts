@@ -7,12 +7,12 @@ export type ToolStatus = {
   error?: string;
 };
 
-type MCPTools = Awaited<ReturnType<Awaited<ReturnType<typeof createMCPClient>>["tools"]>>;
+type MCPClientTools = Awaited<ReturnType<Awaited<ReturnType<typeof createMCPClient>>["tools"]>>;
 
-let cachedTools: MCPTools | null = null;
+let cachedTools: MCPClientTools | null = null;
 let toolStatuses: ToolStatus[] = [];
 
-async function initializeClient(config: MCPToolConfig): Promise<MCPTools> {
+async function initializeClient(config: MCPToolConfig): Promise<MCPClientTools> {
   console.log(`Initializing MCP client: ${config.name}`);
 
   const client = await createMCPClient({
@@ -29,19 +29,19 @@ async function initializeClient(config: MCPToolConfig): Promise<MCPTools> {
   return tools;
 }
 
-export async function getTools(): Promise<MCPTools> {
+export async function getTools(): Promise<MCPClientTools> {
   if (cachedTools) {
     return cachedTools;
   }
 
   const configs = getToolConfigs();
-  cachedTools = {} as MCPTools;
+  const collectedTools: MCPClientTools[] = [];
   toolStatuses = [];
 
   for (const config of configs) {
     try {
       const tools = await initializeClient(config);
-      Object.assign(cachedTools, tools);
+      collectedTools.push(tools);
       toolStatuses.push({ name: config.name, status: "ok" });
     } catch (error) {
       console.error(`Failed to initialize MCP client ${config.name}:`, error);
@@ -53,6 +53,7 @@ export async function getTools(): Promise<MCPTools> {
     }
   }
 
+  cachedTools = Object.assign({}, ...collectedTools);
   return cachedTools;
 }
 
