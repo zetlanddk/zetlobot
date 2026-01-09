@@ -22,5 +22,10 @@ export function getToolConfigs(): MCPToolConfig[] {
       name: "chargebee-knowledge-base",
       url: getRequiredEnv("CHARGEBEE_KNOWLEDGE_BASE"),
     },
+    {
+      name: "pager duty",
+      url: "https://mcp.pagerduty.com/mcp",
+      headers: { Authorization: `Token ${getRequiredEnv("PAGER_DUTY_API_KEY")}` },
+    }
   ];
 }
