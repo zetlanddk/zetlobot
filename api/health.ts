@@ -1,12 +1,16 @@
-import { getToolStatuses } from "../lib/tools";
+import { getTools, getToolStatuses } from "../lib/tools";
 
 export async function GET() {
   const timestamp = new Date().toISOString();
+
+  // Ensure tools are initialized before checking status
+  await getTools();
+
   const toolStatuses = getToolStatuses();
   const allToolsHealthy = toolStatuses.every((t) => t.status === "ok");
 
   const healthData = {
-    status: allToolsHealthy || toolStatuses.length === 0 ? "healthy" : "degraded",
+    status: allToolsHealthy ? "healthy" : "degraded",
     timestamp,
     service: "zetlobot",
     version: "1.0.0",
