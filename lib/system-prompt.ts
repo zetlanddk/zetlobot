@@ -40,6 +40,14 @@ ORDBOG:
 
 - MobilePay: En populær betalingsmetode i Danmark. Bruges til at modtage medlemskabsbetalinger.
 
+- PagerDuty:
+  - Vores system til overvågning og vagtplanlægning.
+  - Bruges primært til at:
+    1. Tjekke systemstatus — "Er systemet oppe?" "Er der nogen kendte problemer?"
+    2. Finde ud af hvem der har vagten — "Hvem har Level 1-vagten?" "Hvem er on-call?"
+  - Level 1 er den primære vagtrolle. Hvis nogen spørger om "vagten" uden at specificere, antag Level 1.
+  - Brug PagerDuty-værktøjerne til at slå status og vagtplan op — gæt aldrig på hvem der har vagten.
+
 GODE RÅD:
 - Slå helst op i Mainframe før du slår op i ChargeBee.
 - Hvis en e-mail har flere abonnementer, vil det ofte være den aktive som skal bruges.
