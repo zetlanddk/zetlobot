@@ -1,17 +1,10 @@
-import { google } from '@ai-sdk/google';
 import { openai } from "@ai-sdk/openai";
 import { ModelMessage, generateText, stepCountIs } from "ai";
-import { getTools as mainframeTools } from "./tools/mainframe";
-import { getTools as chargebeeKnowledgeBaseTools } from "./tools/chargebee-knowledge-base";
-import { getTools as chargebeeDataLookupTools } from "./tools/chargebee-data-lookup";
+import { getTools } from "./tools";
 import { getSystemPrompt } from "./system-prompt";
 
 export const generateResponse = async (messages: ModelMessage[]) => {
-  const tools = {
-    ...(await mainframeTools()),
-    ...(await chargebeeDataLookupTools()),
-    ...(await chargebeeKnowledgeBaseTools()),
-  };
+  const tools = await getTools();
 
   const { text } = await generateText({
     model: openai("gpt-5.2"),

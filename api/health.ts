@@ -1,13 +1,18 @@
+import { getToolStatuses } from "../lib/tools";
+
 export async function GET() {
   const timestamp = new Date().toISOString();
+  const toolStatuses = getToolStatuses();
+  const allToolsHealthy = toolStatuses.every((t) => t.status === "ok");
 
   const healthData = {
-    status: "healthy",
+    status: allToolsHealthy || toolStatuses.length === 0 ? "healthy" : "degraded",
     timestamp,
     service: "zetlobot",
     version: "1.0.0",
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "production",
+    tools: toolStatuses,
   };
 
   return new Response(JSON.stringify(healthData, null, 2), {
