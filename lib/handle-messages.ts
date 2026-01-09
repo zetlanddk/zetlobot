@@ -42,7 +42,14 @@ export async function handleNewAssistantMessage(
   await updateStatus(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
-  const result = await generateResponse(messages);
+
+  let result: string;
+  try {
+    result = await generateResponse(messages);
+  } catch (error) {
+    console.error("Failed to generate response:", error);
+    result = "Sorry, I encountered an error while generating a response. Please try again.";
+  }
 
   await client.chat.postMessage({
     channel: channel,

@@ -40,12 +40,18 @@ export async function handleNewAppMention(
   const { thread_ts, channel } = event;
   const updateMessage = await createMessageUpdater(randomThinkingEmoji(), event);
 
-  if (thread_ts) {
-    const messages = await getThread(channel, thread_ts, botUserId);
-    const result = await generateResponse(messages);
-    await updateMessage(result);
-  } else {
-    const result = await generateResponse([{ role: "user", content: event.text }]);
-    await updateMessage(result);
+  let result: string;
+  try {
+    if (thread_ts) {
+      const messages = await getThread(channel, thread_ts, botUserId);
+      result = await generateResponse(messages);
+    } else {
+      result = await generateResponse([{ role: "user", content: event.text }]);
+    }
+  } catch (error) {
+    console.error("Failed to generate response:", error);
+    result = "Sorry, I encountered an error while generating a response. Please try again.";
   }
+
+  await updateMessage(result);
 }
