@@ -35,13 +35,13 @@ export async function getTools(): Promise<MCPClientTools> {
   }
 
   const configs = getToolConfigs();
-  const collectedTools: MCPClientTools[] = [];
+  let tools: MCPClientTools = {};
   toolStatuses = [];
 
   for (const config of configs) {
     try {
-      const tools = await initializeClient(config);
-      collectedTools.push(tools);
+      const clientTools = await initializeClient(config);
+      tools = { ...tools, ...clientTools };
       toolStatuses.push({ name: config.name, status: "ok" });
     } catch (error) {
       console.error(`Failed to initialize MCP client ${config.name}:`, error);
@@ -53,7 +53,7 @@ export async function getTools(): Promise<MCPClientTools> {
     }
   }
 
-  cachedTools = Object.assign({}, ...collectedTools);
+  cachedTools = tools;
   return cachedTools;
 }
 
