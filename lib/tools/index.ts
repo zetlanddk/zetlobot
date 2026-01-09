@@ -7,7 +7,8 @@ export type ToolStatus = {
   error?: string;
 };
 
-type MCPClientTools = Awaited<ReturnType<Awaited<ReturnType<typeof createMCPClient>>["tools"]>>;
+type MCPClient = Awaited<ReturnType<typeof createMCPClient>>;
+type MCPClientTools = Awaited<ReturnType<MCPClient["tools"]>>;
 
 let cachedTools: MCPClientTools | null = null;
 let toolStatuses: ToolStatus[] = [];
