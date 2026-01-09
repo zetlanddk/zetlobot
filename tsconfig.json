@@ -9,7 +9,11 @@
     "outDir": "./dist"
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts"
   ],
   "include": [
     "api",
