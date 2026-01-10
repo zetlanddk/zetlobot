@@ -1,5 +1,5 @@
 import { createMCPClient } from "@ai-sdk/mcp";
-import { getToolConfigs, MCPToolConfig } from "./config";
+import { getToolConfigs, MCPToolConfig } from "../config";
 
 export type ToolStatus = {
   name: string;
