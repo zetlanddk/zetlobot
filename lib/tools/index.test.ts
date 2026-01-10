@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createMCPClient } from "@ai-sdk/mcp";
-import { getToolConfigs, MCPToolConfig } from "./config";
+import { getToolConfigs, MCPToolConfig } from "../config";
 
 // Raw HTTP test to see what the server actually returns
 async function testRawMCPRequest(url: string, body: object, headers?: Record<string, string>) {
