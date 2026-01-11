@@ -1,7 +1,7 @@
 import { WebClient } from '@slack/web-api';
 import { ModelMessage } from 'ai'
 import crypto from 'crypto'
-import { env } from './config'
+import { env } from './env'
 
 const signingSecret = env.SLACK_SIGNING_SECRET;
 
