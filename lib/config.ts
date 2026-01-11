@@ -6,11 +6,11 @@ const envSchema = z.object({
   SLACK_SIGNING_SECRET: z.string().min(1, "SLACK_SIGNING_SECRET is required"),
 
   // MCP Tool configurations
-  MAINFRAME_API_ROOT: z.string().url("MAINFRAME_API_ROOT must be a valid URL"),
+  MAINFRAME_API_ROOT: z.url("MAINFRAME_API_ROOT must be a valid URL"),
   MAINFRAME_API_KEY: z.string().min(1, "MAINFRAME_API_KEY is required"),
-  CHARGEBEE_DATA_LOOKUP: z.string().url("CHARGEBEE_DATA_LOOKUP must be a valid URL"),
+  CHARGEBEE_DATA_LOOKUP: z.url("CHARGEBEE_DATA_LOOKUP must be a valid URL"),
   CHARGEBEE_DATA_LOOKUP_API_KEY: z.string().min(1, "CHARGEBEE_DATA_LOOKUP_API_KEY is required"),
-  CHARGEBEE_KNOWLEDGE_BASE: z.string().url("CHARGEBEE_KNOWLEDGE_BASE must be a valid URL"),
+  CHARGEBEE_KNOWLEDGE_BASE: z.url("CHARGEBEE_KNOWLEDGE_BASE must be a valid URL"),
   PAGER_DUTY_API_KEY: z.string().min(1, "PAGER_DUTY_API_KEY is required"),
 
   // Optional: Channel whitelist (comma-separated channel IDs)
