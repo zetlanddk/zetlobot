@@ -10,16 +10,16 @@ importers:
     dependencies:
       '@ai-sdk/google':
         specifier: ^3.0.6
-        version: 3.0.6(zod@4.1.12)
+        version: 3.0.6(zod@4.3.5)
       '@ai-sdk/mcp':
         specifier: ^1.0.2
-        version: 1.0.2(zod@4.1.12)
+        version: 1.0.2(zod@4.3.5)
       '@ai-sdk/openai':
         specifier: ^3.0.2
-        version: 3.0.2(zod@4.1.12)
+        version: 3.0.2(zod@4.3.5)
       '@modelcontextprotocol/sdk':
         specifier: ^1.25.1
-        version: 1.25.1(hono@4.11.3)(zod@4.1.12)
+        version: 1.25.1(hono@4.11.3)(zod@4.3.5)
       '@slack/web-api':
         specifier: ^7.13.0
         version: 7.13.0
@@ -28,7 +28,10 @@ importers:
         version: 3.3.4
       ai:
         specifier: ^6.0.5
-        version: 6.0.5(zod@4.1.12)
+        version: 6.0.5(zod@4.3.5)
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@types/node':
         specifier: ^25.0.3
@@ -1082,50 +1085,50 @@ packages:
     peerDependencies:
       zod: ^3.25 || ^4
 
-  zod@4.1.12:
-    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
+  zod@4.3.5:
+    resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
 
 snapshots:
 
-  '@ai-sdk/gateway@3.0.4(zod@4.1.12)':
+  '@ai-sdk/gateway@3.0.4(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.1
-      '@ai-sdk/provider-utils': 4.0.2(zod@4.1.12)
+      '@ai-sdk/provider-utils': 4.0.2(zod@4.3.5)
       '@vercel/oidc': 3.0.5
-      zod: 4.1.12
+      zod: 4.3.5
 
-  '@ai-sdk/google@3.0.6(zod@4.1.12)':
+  '@ai-sdk/google@3.0.6(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.1.12)
-      zod: 4.1.12
+      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      zod: 4.3.5
 
-  '@ai-sdk/mcp@1.0.2(zod@4.1.12)':
+  '@ai-sdk/mcp@1.0.2(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.1
-      '@ai-sdk/provider-utils': 4.0.2(zod@4.1.12)
+      '@ai-sdk/provider-utils': 4.0.2(zod@4.3.5)
       pkce-challenge: 5.0.1
-      zod: 4.1.12
+      zod: 4.3.5
 
-  '@ai-sdk/openai@3.0.2(zod@4.1.12)':
+  '@ai-sdk/openai@3.0.2(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.1
-      '@ai-sdk/provider-utils': 4.0.2(zod@4.1.12)
-      zod: 4.1.12
+      '@ai-sdk/provider-utils': 4.0.2(zod@4.3.5)
+      zod: 4.3.5
 
-  '@ai-sdk/provider-utils@4.0.2(zod@4.1.12)':
+  '@ai-sdk/provider-utils@4.0.2(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.1
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.0.6
-      zod: 4.1.12
+      zod: 4.3.5
 
-  '@ai-sdk/provider-utils@4.0.4(zod@4.1.12)':
+  '@ai-sdk/provider-utils@4.0.4(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.0.6
-      zod: 4.1.12
+      zod: 4.3.5
 
   '@ai-sdk/provider@3.0.1':
     dependencies:
@@ -1219,7 +1222,7 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@modelcontextprotocol/sdk@1.25.1(hono@4.11.3)(zod@4.1.12)':
+  '@modelcontextprotocol/sdk@1.25.1(hono@4.11.3)(zod@4.3.5)':
     dependencies:
       '@hono/node-server': 1.19.7(hono@4.11.3)
       ajv: 8.17.1
@@ -1235,8 +1238,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.1.12
-      zod-to-json-schema: 3.25.1(zod@4.1.12)
+      zod: 4.3.5
+      zod-to-json-schema: 3.25.1(zod@4.3.5)
     transitivePeerDependencies:
       - hono
       - supports-color
@@ -1408,13 +1411,13 @@ snapshots:
       mime-types: 3.0.2
       negotiator: 1.0.0
 
-  ai@6.0.5(zod@4.1.12):
+  ai@6.0.5(zod@4.3.5):
     dependencies:
-      '@ai-sdk/gateway': 3.0.4(zod@4.1.12)
+      '@ai-sdk/gateway': 3.0.4(zod@4.3.5)
       '@ai-sdk/provider': 3.0.1
-      '@ai-sdk/provider-utils': 4.0.2(zod@4.1.12)
+      '@ai-sdk/provider-utils': 4.0.2(zod@4.3.5)
       '@opentelemetry/api': 1.9.0
-      zod: 4.1.12
+      zod: 4.3.5
 
   ajv-formats@3.0.1(ajv@8.17.1):
     optionalDependencies:
@@ -2019,8 +2022,8 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  zod-to-json-schema@3.25.1(zod@4.1.12):
+  zod-to-json-schema@3.25.1(zod@4.3.5):
     dependencies:
-      zod: 4.1.12
+      zod: 4.3.5
 
-  zod@4.1.12: {}
+  zod@4.3.5: {}
