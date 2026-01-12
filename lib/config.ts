@@ -23,11 +23,11 @@ export function getToolConfigs(): MCPToolConfig[] {
       url: `${env.MAINFRAME_API_ROOT}/api/v1/internal/mcp`,
       headers: { "X-Internal-Api-Key": env.MAINFRAME_API_KEY },
     },
-    // {
-    //   name: "chargebee-data-lookup",
-    //   url: env.CHARGEBEE_DATA_LOOKUP,
-    //   headers: { Authorization: `Bearer ${env.CHARGEBEE_DATA_LOOKUP_API_KEY}` },
-    // },
+    {
+      name: "chargebee-data-lookup",
+      url: env.CHARGEBEE_DATA_LOOKUP,
+      headers: { Authorization: `Bearer ${env.CHARGEBEE_DATA_LOOKUP_API_KEY}` },
+    },
     {
       name: "chargebee-knowledge-base",
       url: env.CHARGEBEE_KNOWLEDGE_BASE,
