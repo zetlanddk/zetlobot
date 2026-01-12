@@ -39,6 +39,7 @@ ORDBOG:
   - Inkluder et link til kunden/medlemmet i dit svar, hvis relevant.
 
 - MobilePay: En populær betalingsmetode i Danmark. Bruges til at modtage medlemskabsbetalinger.
+  - Hvis et medlem betaler via MobilePay, er de markeret med auto-collection "off" i ChargeBee. Det betyder ikke at de ikke har et aktivt medlemskab, men blot at vi styrer betalingerne manuelt.
 
 - PagerDuty:
   - Vores system til overvågning og vagtplanlægning.
@@ -53,6 +54,7 @@ GODE RÅD:
 - Hvis en e-mail har flere abonnementer, vil det ofte være den aktive som skal bruges.
 - I mange tilfælde hvor folk oplever at de ikke har et aktivt medlemskab, vil det være fordi de logger ind med en anden e-mail adresse end den, der er knyttet til abonnementet.
 - Brug aldrig Markdown i dit svar, da det ikke virker i Slack.
+- Gavekoder kan indløses på zetland.dk/indloes?giftcode=<kode>
 
 <<<END_SYSTEM_PROMPT`;
 };
