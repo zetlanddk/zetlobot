@@ -8,11 +8,12 @@ export const generateResponse = async (messages: ModelMessage[]) => {
   const tools = await getTools();
 
   const { text } = await generateText({
-    model: google("gemini-pro-latest"),
+    model: google("gemini-2.0-flash"),
     system: getSystemPrompt(),
     messages,
     tools,
     stopWhen: stepCountIs(7),
+    temperature: 0.2, // Low temperature reduces hallucinations
   });
 
   // Convert markdown to Slack mrkdwn format
