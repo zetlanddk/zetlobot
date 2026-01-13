@@ -8,7 +8,7 @@ export const generateResponse = async (messages: ModelMessage[]) => {
   const tools = await getTools();
 
   const { text } = await generateText({
-    model: google("gemini-3-flash-preview"),
+    model: google("gemini-pro-latest"),
     system: getSystemPrompt(),
     messages,
     tools,
