@@ -15,7 +15,7 @@ export const generateResponse = async (messages: ModelMessage[]) => {
     messages,
     tools,
     stopWhen: stepCountIs(MAX_STEPS),
-    temperature: 0.5,
+    temperature: 0.3,
   });
 
   const hitStepLimit = steps.length >= MAX_STEPS;
