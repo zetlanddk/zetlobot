@@ -15,7 +15,7 @@ export const generateResponse = async (messages: ModelMessage[]) => {
     messages,
     tools,
     stopWhen: stepCountIs(MAX_STEPS),
-    // temperature: 0.2, // Low temperature reduces hallucinations
+    temperature: 0.5,
   });
 
   const hitStepLimit = steps.length >= MAX_STEPS;
