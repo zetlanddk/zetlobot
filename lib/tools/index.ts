@@ -38,7 +38,7 @@ function buildToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPTool
       url: tenant.chargebeeKnowledgeBase,
     },
     {
-      name: "pager duty",
+      name: "pager-duty",
       url: "https://mcp.pagerduty.com/mcp",
       headers: { Authorization: `Token ${env.PAGER_DUTY_API_KEY}` },
     },
