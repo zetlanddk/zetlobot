@@ -92,16 +92,20 @@ export async function POST(request: Request) {
 
     // Resolve tenant from channel
     const channelId = getChannelFromEvent(event);
-    const tenant = channelId ? getTenantByChannelId(channelId) : null;
+    if (!channelId) {
+      console.log("No channel ID found in event, cannot determine tenant");
+      return new Response("No channel context", { status: 200 });
+    }
 
-    if (channelId && !tenant) {
+    const tenant = getTenantByChannelId(channelId);
+    if (!tenant) {
       console.log(`Channel ${channelId} is not configured for any tenant, sending rejection message`);
       waitUntil(sendChannelNotAllowedMessage(event, channelId));
       return new Response("Channel not configured", { status: 200 });
     }
 
     const botUserId = await getBotId();
-    const tenantId = tenant?.id ?? "zetland"; // Fallback for DMs without channel context
+    const tenantId = tenant.id;
 
     if (event.type === "app_mention") {
       waitUntil(handleNewAppMention(event, botUserId, tenantId));
