@@ -1,22 +1,6 @@
 import { getZetlandSystemPrompt } from "./system-prompts/zetland";
 
-export type TenantId = "zetland";
-
-export type TenantConfig = {
-  id: TenantId;
-  channelIds: string[];
-  mainframeApiRoot: string;
-  chargebeeDataLookup: string;
-  chargebeeKnowledgeBase: string;
-  getSystemPrompt: () => string;
-};
-
-export type TenantSecrets = {
-  mainframeApiKey: string;
-  chargebeeApiKey: string;
-};
-
-const tenants: TenantConfig[] = [
+const tenants = [
   {
     id: "zetland",
     channelIds: ["C09QRDLKV8F"],
@@ -25,10 +9,19 @@ const tenants: TenantConfig[] = [
     chargebeeKnowledgeBase: "https://zetland-test.mcp.eu.chargebee.com/knowledge_base_agent",
     getSystemPrompt: getZetlandSystemPrompt,
   },
-];
+] as const;
+
+export type TenantId = (typeof tenants)[number]["id"];
+
+export type TenantConfig = (typeof tenants)[number];
+
+export type TenantSecrets = {
+  mainframeApiKey: string;
+  chargebeeApiKey: string;
+};
 
 export function getTenantByChannelId(channelId: string): TenantConfig | null {
-  return tenants.find((t) => t.channelIds.includes(channelId)) ?? null;
+  return tenants.find((t) => (t.channelIds as readonly string[]).includes(channelId)) ?? null;
 }
 
 export function getTenantById(tenantId: TenantId): TenantConfig | null {
