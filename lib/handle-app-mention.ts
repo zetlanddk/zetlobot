@@ -2,6 +2,7 @@ import { AppMentionEvent } from "@slack/web-api";
 import { client, getThread } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
+import { TenantId } from "./tenants";
 
 /**
  * Posts an initial message and returns a function to update it.
@@ -33,7 +34,7 @@ const createMessageUpdater = async (
 export async function handleNewAppMention(
   event: AppMentionEvent,
   botUserId: string,
-  tenantId: string,
+  tenantId: TenantId,
 ) {
   // Note: Bot messages are filtered at the event handler level in api/events.ts
   console.log("Handling app mention");

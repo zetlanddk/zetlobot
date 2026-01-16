@@ -1,10 +1,11 @@
 import { getToolsForTenant, getToolStatusesForTenant, ToolStatus } from "../lib/tools";
+import { TenantId } from "../lib/tenants";
 
 export async function GET() {
   const timestamp = new Date().toISOString();
 
   // Check tools for the default tenant (zetland)
-  const tenantId = "zetland";
+  const tenantId: TenantId = "zetland";
   await getToolsForTenant(tenantId);
 
   const toolStatuses = getToolStatusesForTenant(tenantId);

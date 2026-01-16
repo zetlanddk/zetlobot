@@ -1,7 +1,9 @@
 import { getZetlandSystemPrompt } from "./system-prompts/zetland";
 
+export type TenantId = "zetland";
+
 export type TenantConfig = {
-  id: string;
+  id: TenantId;
   channelIds: string[];
   mainframeApiRoot: string;
   chargebeeDataLookup: string;
@@ -29,11 +31,11 @@ export function getTenantByChannelId(channelId: string): TenantConfig | null {
   return tenants.find((t) => t.channelIds.includes(channelId)) ?? null;
 }
 
-export function getTenantById(tenantId: string): TenantConfig | null {
+export function getTenantById(tenantId: TenantId): TenantConfig | null {
   return tenants.find((t) => t.id === tenantId) ?? null;
 }
 
-export function getTenantSecrets(tenantId: string): TenantSecrets {
+export function getTenantSecrets(tenantId: TenantId): TenantSecrets {
   const prefix = tenantId.toUpperCase();
   const mainframeApiKey = process.env[`${prefix}_MAINFRAME_API_KEY`];
   const chargebeeApiKey = process.env[`${prefix}_CHARGEBEE_DATA_LOOKUP_API_KEY`];

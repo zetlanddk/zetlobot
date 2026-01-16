@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createMCPClient } from "@ai-sdk/mcp";
-import { getTenantById, getTenantSecrets } from "../tenants";
+import { getTenantById, getTenantSecrets, TenantId } from "../tenants";
 import { MCPToolConfig } from "./index";
 import { env } from "../env";
 
 // Build tool configs for a specific tenant (mirrors the internal buildToolConfigs)
-function buildTestToolConfigs(tenantId: string): MCPToolConfig[] {
+function buildTestToolConfigs(tenantId: TenantId): MCPToolConfig[] {
   const tenant = getTenantById(tenantId);
   if (!tenant) {
     throw new Error(`Unknown tenant: ${tenantId}`);
@@ -70,7 +70,7 @@ async function testRawMCPEndpoint(url: string, headers?: Record<string, string>)
 }
 
 describe("MCP Tools", () => {
-  const testTenantId = "zetland";
+  const testTenantId: TenantId = "zetland";
   let configs: MCPToolConfig[];
 
   beforeAll(() => {

@@ -5,10 +5,11 @@ import type {
 import { client, getThread, createAssistantStatusUpdater } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
+import { TenantId } from "./tenants";
 
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
-  tenantId: string,
+  tenantId: TenantId,
 ) {
   const { channel_id, thread_ts } = event.assistant_thread;
   console.log(`Thread started: ${channel_id} ${thread_ts}`);
@@ -34,7 +35,7 @@ export async function assistantThreadMessage(
 export async function handleNewAssistantMessage(
   event: GenericMessageEvent,
   botUserId: string,
-  tenantId: string,
+  tenantId: TenantId,
 ) {
   // Note: Bot messages are filtered at the event handler level in api/events.ts
   if (!event.thread_ts) return;

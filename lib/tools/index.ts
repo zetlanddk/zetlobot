@@ -1,5 +1,5 @@
 import { createMCPClient } from "@ai-sdk/mcp";
-import { getTenantById, getTenantSecrets, TenantConfig, TenantSecrets } from "../tenants";
+import { getTenantById, getTenantSecrets, TenantConfig, TenantSecrets, TenantId } from "../tenants";
 import { env } from "../env";
 
 export type ToolStatus = {
@@ -18,8 +18,8 @@ type MCPClient = Awaited<ReturnType<typeof createMCPClient>>;
 type MCPClientTools = Awaited<ReturnType<MCPClient["tools"]>>;
 
 // Per-tenant caches
-const toolsCache = new Map<string, MCPClientTools>();
-const statusCache = new Map<string, ToolStatus[]>();
+const toolsCache = new Map<TenantId, MCPClientTools>();
+const statusCache = new Map<TenantId, ToolStatus[]>();
 
 function buildToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPToolConfig[] {
   return [
@@ -62,7 +62,7 @@ async function initializeClient(config: MCPToolConfig): Promise<MCPClientTools> 
   return tools;
 }
 
-export async function getToolsForTenant(tenantId: string): Promise<MCPClientTools> {
+export async function getToolsForTenant(tenantId: TenantId): Promise<MCPClientTools> {
   if (toolsCache.has(tenantId)) {
     return toolsCache.get(tenantId)!;
   }
@@ -99,6 +99,6 @@ export async function getToolsForTenant(tenantId: string): Promise<MCPClientTool
   return tools;
 }
 
-export function getToolStatusesForTenant(tenantId: string): ToolStatus[] {
+export function getToolStatusesForTenant(tenantId: TenantId): ToolStatus[] {
   return statusCache.get(tenantId) ?? [];
 }

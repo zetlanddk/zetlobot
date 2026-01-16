@@ -1,11 +1,11 @@
 import { ModelMessage, generateText, stepCountIs } from "ai";
 import { getToolsForTenant } from "./tools";
-import { getTenantById } from "./tenants";
+import { getTenantById, TenantId } from "./tenants";
 import { google } from "@ai-sdk/google";
 
 const MAX_STEPS = 10;
 
-export const generateResponse = async (messages: ModelMessage[], tenantId: string) => {
+export const generateResponse = async (messages: ModelMessage[], tenantId: TenantId) => {
   const tenant = getTenantById(tenantId);
   if (!tenant) {
     throw new Error(`Unknown tenant: ${tenantId}`);
