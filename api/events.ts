@@ -6,7 +6,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
 import { verifyRequest, getBotId, client } from "../lib/slack-utils";
-import { isChannelWhitelisted } from "../lib/utils";
+import { getTenantByChannelId } from "../lib/tenants";
 
 /**
  * Extract channel ID from various Slack event types
@@ -90,22 +90,25 @@ export async function POST(request: Request) {
       return new Response("Ignoring bot message", { status: 200 });
     }
 
-    // Check channel whitelist
+    // Resolve tenant from channel
     const channelId = getChannelFromEvent(event);
-    if (channelId && !isChannelWhitelisted(channelId)) {
-      console.log(`Channel ${channelId} is not whitelisted, sending rejection message`);
+    const tenant = channelId ? getTenantByChannelId(channelId) : null;
+
+    if (channelId && !tenant) {
+      console.log(`Channel ${channelId} is not configured for any tenant, sending rejection message`);
       waitUntil(sendChannelNotAllowedMessage(event, channelId));
-      return new Response("Channel not whitelisted", { status: 200 });
+      return new Response("Channel not configured", { status: 200 });
     }
 
     const botUserId = await getBotId();
+    const tenantId = tenant?.id ?? "zetland"; // Fallback for DMs without channel context
 
     if (event.type === "app_mention") {
-      waitUntil(handleNewAppMention(event, botUserId));
+      waitUntil(handleNewAppMention(event, botUserId, tenantId));
     }
 
     if (event.type === "assistant_thread_started") {
-      waitUntil(assistantThreadMessage(event));
+      waitUntil(assistantThreadMessage(event, tenantId));
     }
 
     // Bot messages are already filtered by isFromBot() above
@@ -114,7 +117,7 @@ export async function POST(request: Request) {
       !event.subtype &&
       event.channel_type === "im"
     ) {
-      waitUntil(handleNewAssistantMessage(event, botUserId));
+      waitUntil(handleNewAssistantMessage(event, botUserId, tenantId));
     }
 
     return new Response("Success!", { status: 200 });
