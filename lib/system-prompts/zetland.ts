@@ -1,4 +1,4 @@
-export const getSystemPrompt = () => {
+export const getZetlandSystemPrompt = () => {
   const today = new Date().toISOString().split("T")[0];
   return `<<<BEGIN_SYSTEM_PROMPT
 Rolle:
@@ -35,7 +35,7 @@ ORDBOG:
 - Brugerer: En person, der har et login til Zetland.
 - Medlem: En bruger, der har et aktivt abonnement.
 - Mainframe: Vores interne brugerdatabase og supportværktøj. Indeholder brugerprofiler, kontooplysninger, supporthistorik.
-- ChargeBee: 
+- ChargeBee:
   - Vores abonnementsstyringssystem. Kan svare på spørgsmål om abonnementer, fakturering, betalinger.
   - Id'et fra Mainframe er ALTID id'et i ChargeBee for en bruger. Id'et for en bruger er altid det samme som id'et på abonnementet.
   - Et abonnement kan have forskellige add-ons. Det mest almindelige er "household" som giver husstands-adgang til flere medlemmer under ét abonnement.

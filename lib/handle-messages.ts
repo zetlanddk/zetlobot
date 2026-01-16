@@ -8,6 +8,7 @@ import { randomThinkingEmoji } from "./utils";
 
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
+  tenantId: string,
 ) {
   const { channel_id, thread_ts } = event.assistant_thread;
   console.log(`Thread started: ${channel_id} ${thread_ts}`);
@@ -33,6 +34,7 @@ export async function assistantThreadMessage(
 export async function handleNewAssistantMessage(
   event: GenericMessageEvent,
   botUserId: string,
+  tenantId: string,
 ) {
   // Note: Bot messages are filtered at the event handler level in api/events.ts
   if (!event.thread_ts) return;
@@ -45,7 +47,7 @@ export async function handleNewAssistantMessage(
 
   let result: string;
   try {
-    result = await generateResponse(messages);
+    result = await generateResponse(messages, tenantId);
   } catch (error) {
     console.error("Failed to generate response:", error);
     result = "Sorry, I encountered an error while generating a response. Please try again.";

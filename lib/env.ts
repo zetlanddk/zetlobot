@@ -1,20 +1,12 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  // Slack configuration
+  // Global Slack configuration
   SLACK_BOT_TOKEN: z.string().min(1, "SLACK_BOT_TOKEN is required"),
   SLACK_SIGNING_SECRET: z.string().min(1, "SLACK_SIGNING_SECRET is required"),
 
-  // MCP Tool configurations
-  MAINFRAME_API_ROOT: z.url("MAINFRAME_API_ROOT must be a valid URL"),
-  MAINFRAME_API_KEY: z.string().min(1, "MAINFRAME_API_KEY is required"),
-  CHARGEBEE_DATA_LOOKUP: z.url("CHARGEBEE_DATA_LOOKUP must be a valid URL"),
-  CHARGEBEE_DATA_LOOKUP_API_KEY: z.string().min(1, "CHARGEBEE_DATA_LOOKUP_API_KEY is required"),
-  CHARGEBEE_KNOWLEDGE_BASE: z.url("CHARGEBEE_KNOWLEDGE_BASE must be a valid URL"),
+  // Global service keys (shared across all tenants)
   PAGER_DUTY_API_KEY: z.string().min(1, "PAGER_DUTY_API_KEY is required"),
-
-  // Optional: Channel whitelist (comma-separated channel IDs)
-  ALLOWED_CHANNEL_IDS: z.string().optional(),
 });
 
 function parseEnv() {

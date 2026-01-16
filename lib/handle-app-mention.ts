@@ -33,6 +33,7 @@ const createMessageUpdater = async (
 export async function handleNewAppMention(
   event: AppMentionEvent,
   botUserId: string,
+  tenantId: string,
 ) {
   // Note: Bot messages are filtered at the event handler level in api/events.ts
   console.log("Handling app mention");
@@ -44,9 +45,9 @@ export async function handleNewAppMention(
   try {
     if (thread_ts) {
       const messages = await getThread(channel, thread_ts, botUserId);
-      result = await generateResponse(messages);
+      result = await generateResponse(messages, tenantId);
     } else {
-      result = await generateResponse([{ role: "user", content: event.text }]);
+      result = await generateResponse([{ role: "user", content: event.text }], tenantId);
     }
   } catch (error) {
     console.error("Failed to generate response:", error);
