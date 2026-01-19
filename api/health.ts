@@ -1,13 +1,15 @@
-import { getTools, getToolStatuses } from "../lib/tools";
+import { getToolsForTenant, getToolStatusesForTenant, ToolStatus } from "../lib/tools";
+import { TenantId } from "../lib/tenants";
 
 export async function GET() {
   const timestamp = new Date().toISOString();
 
-  // Ensure tools are initialized before checking status
-  await getTools();
+  // Check tools for the default tenant (zetland)
+  const tenantId: TenantId = "zetland";
+  await getToolsForTenant(tenantId);
 
-  const toolStatuses = getToolStatuses();
-  const allToolsHealthy = toolStatuses.every((t) => t.status === "ok");
+  const toolStatuses = getToolStatusesForTenant(tenantId);
+  const allToolsHealthy = toolStatuses.every((t: ToolStatus) => t.status === "ok");
 
   const healthData = {
     status: allToolsHealthy ? "healthy" : "degraded",
@@ -16,6 +18,7 @@ export async function GET() {
     version: "1.0.0",
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "production",
+    tenant: tenantId,
     tools: toolStatuses,
   };
 

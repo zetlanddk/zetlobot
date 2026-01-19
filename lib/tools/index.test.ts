@@ -1,6 +1,39 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { createMCPClient } from "@ai-sdk/mcp";
-import { getToolConfigs, MCPToolConfig } from "../config";
+import { getTenantById, getTenantSecrets, TenantId } from "../tenants";
+import { MCPToolConfig } from "./index";
+import { env } from "../env";
+
+// Build tool configs for a specific tenant (mirrors the internal buildToolConfigs)
+function buildTestToolConfigs(tenantId: TenantId): MCPToolConfig[] {
+  const tenant = getTenantById(tenantId);
+  if (!tenant) {
+    throw new Error(`Unknown tenant: ${tenantId}`);
+  }
+  const secrets = getTenantSecrets(tenantId);
+
+  return [
+    {
+      name: "mainframe",
+      url: `${tenant.mainframeApiRoot}/api/v1/internal/mcp`,
+      headers: { "X-Internal-Api-Key": secrets.mainframeApiKey },
+    },
+    {
+      name: "chargebee-data-lookup",
+      url: tenant.chargebeeDataLookup,
+      headers: { Authorization: `Bearer ${secrets.chargebeeApiKey}` },
+    },
+    {
+      name: "chargebee-knowledge-base",
+      url: tenant.chargebeeKnowledgeBase,
+    },
+    {
+      name: "pager-duty",
+      url: "https://mcp.pagerduty.com/mcp",
+      headers: { Authorization: `Token ${env.PAGER_DUTY_API_KEY}` },
+    },
+  ];
+}
 
 // Raw HTTP test to see what the server actually returns
 async function testRawMCPRequest(url: string, body: object, headers?: Record<string, string>) {
@@ -37,10 +70,11 @@ async function testRawMCPEndpoint(url: string, headers?: Record<string, string>)
 }
 
 describe("MCP Tools", () => {
+  const testTenantId: TenantId = "zetland";
   let configs: MCPToolConfig[];
 
   beforeAll(() => {
-    configs = getToolConfigs();
+    configs = buildTestToolConfigs(testTenantId);
   });
 
   it("should have tool configs defined", () => {
@@ -53,9 +87,9 @@ describe("MCP Tools", () => {
     it("mainframe - should initialize successfully", async () => {
       const config = configs.find(c => c.name === "mainframe");
       expect(config).toBeDefined();
-      
+
       console.log(`Testing mainframe at: ${config!.url}`);
-      
+
       const client = await createMCPClient({
         transport: {
           type: "http",
@@ -72,9 +106,9 @@ describe("MCP Tools", () => {
     it("chargebee-data-lookup - should initialize successfully", async () => {
       const config = configs.find(c => c.name === "chargebee-data-lookup");
       expect(config).toBeDefined();
-      
+
       console.log(`Testing chargebee-data-lookup at: ${config!.url}`);
-      
+
       const client = await createMCPClient({
         transport: {
           type: "http",
@@ -91,9 +125,9 @@ describe("MCP Tools", () => {
     it("chargebee-knowledge-base - should initialize successfully", async () => {
       const config = configs.find(c => c.name === "chargebee-knowledge-base");
       expect(config).toBeDefined();
-      
+
       console.log(`Testing chargebee-knowledge-base at: ${config!.url}`);
-      
+
       const client = await createMCPClient({
         transport: {
           type: "http",
@@ -115,11 +149,11 @@ describe("MCP Tools", () => {
 
       console.log(`\nRaw HTTP test for mainframe at: ${config!.url}`);
       const result = await testRawMCPEndpoint(config!.url, config!.headers);
-      
+
       console.log(`Status: ${result.status} ${result.statusText}`);
       console.log(`Response headers:`, result.headers);
       console.log(`Response body:`, result.body);
-      
+
       // Parse response if possible
       try {
         const parsed = JSON.parse(result.body);
@@ -143,13 +177,13 @@ describe("MCP Tools", () => {
 
       console.log(`\nTesting initialized notification at: ${config!.url}`);
       const result = await testRawMCPRequest(config!.url, initializedNotification, config!.headers);
-      
+
       console.log(`Status: ${result.status} ${result.statusText}`);
       console.log(`Response body: "${result.body}"`);
       console.log(`Body length: ${result.body.length}`);
       console.log(`Body is null string: ${result.body === "null"}`);
       console.log(`Body is empty: ${result.body === ""}`);
-      
+
       // Check what the body actually contains
       if (result.body) {
         try {
@@ -172,11 +206,11 @@ describe("MCP Tools", () => {
 
       console.log(`\nTesting initialized notification at chargebee: ${config!.url}`);
       const result = await testRawMCPRequest(config!.url, initializedNotification, config!.headers);
-      
+
       console.log(`Status: ${result.status} ${result.statusText}`);
       console.log(`Response body: "${result.body}"`);
       console.log(`Body length: ${result.body.length}`);
-      
+
       if (result.body) {
         try {
           const parsed = JSON.parse(result.body);
@@ -208,7 +242,7 @@ describe("MCP Tools", () => {
       console.log("\nCalling list_authors tool...");
       const result = await listAuthorsTool.execute({}, {});
       console.log("list_authors result:", JSON.stringify(result, null, 2));
-      
+
       expect(result).toBeDefined();
     }, 30000);
 
@@ -231,7 +265,7 @@ describe("MCP Tools", () => {
       console.log("\nCalling search_stories tool...");
       const result = await searchTool.execute({ query: "test" }, {});
       console.log("search_stories result:", JSON.stringify(result, null, 2));
-      
+
       expect(result).toBeDefined();
     }, 30000);
   });
@@ -243,7 +277,7 @@ describe("MCP Tools", () => {
       for (const config of configs) {
         try {
           console.log(`\nInitializing ${config.name}...`);
-          
+
           const client = await createMCPClient({
             transport: {
               type: "http",
@@ -254,7 +288,7 @@ describe("MCP Tools", () => {
 
           const tools = await client.tools();
           const toolNames = Object.keys(tools);
-          
+
           console.log(`✅ ${config.name}: ${toolNames.length} tools`);
           results.push({ name: config.name, status: "ok", tools: toolNames });
         } catch (error) {

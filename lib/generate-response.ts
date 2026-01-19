@@ -1,17 +1,21 @@
-import { openai } from "@ai-sdk/openai";
 import { ModelMessage, generateText, stepCountIs } from "ai";
-import { getTools } from "./tools";
-import { getSystemPrompt } from "./system-prompt";
+import { getToolsForTenant } from "./tools";
+import { getTenantById, TenantId } from "./tenants";
 import { google } from "@ai-sdk/google";
 
 const MAX_STEPS = 10;
 
-export const generateResponse = async (messages: ModelMessage[]) => {
-  const tools = await getTools();
+export const generateResponse = async (messages: ModelMessage[], tenantId: TenantId) => {
+  const tenant = getTenantById(tenantId);
+  if (!tenant) {
+    throw new Error(`Unknown tenant: ${tenantId}`);
+  }
+
+  const tools = await getToolsForTenant(tenantId);
 
   const { text, steps } = await generateText({
     model: google("gemini-2.5-pro"),
-    system: getSystemPrompt(),
+    system: tenant.getSystemPrompt(),
     messages,
     tools,
     stopWhen: stepCountIs(MAX_STEPS),
