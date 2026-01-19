@@ -46,7 +46,7 @@ export const generateResponse = async (
 
   const tools = { ...mcpTools, ...localTools };
 
-  const { text, steps } = await generateText({
+  const { text, steps, finishReason } = await generateText({
     model: google("gemini-3-pro-preview"),
     system: tenant.getSystemPrompt(),
     messages,
@@ -65,7 +65,29 @@ export const generateResponse = async (
     if (hitStepLimit) {
       return "I ran out of steps before completing. Try simplifying your request.";
     }
-    return "I processed your request but have nothing to add.";
+
+    // Check what tools were called to provide better feedback
+    const toolsCalled = steps
+      .flatMap((step) => step.toolCalls ?? [])
+      .map((call) => call.toolName);
+
+    const uniqueTools = [...new Set(toolsCalled)];
+    const toolsContext =
+      uniqueTools.length > 0 ? ` (called ${uniqueTools.join(", ")})` : "";
+
+    if (finishReason === "error") {
+      return `Something went wrong: An error occurred while processing your request${toolsContext}. Please try again.`;
+    }
+
+    if (finishReason === "length") {
+      return `Something went wrong: The response was cut off due to length limits${toolsContext}. Try simplifying your request.`;
+    }
+
+    if (finishReason === "tool-calls") {
+      return `Something went wrong: I called ${uniqueTools.join(", ")} but failed to summarize the results. Please try rephrasing your request.`;
+    }
+
+    return `Something went wrong: I was unable to generate a response${toolsContext}. Please try rephrasing your request.`;
   }
 
   // Convert markdown to Slack mrkdwn format
