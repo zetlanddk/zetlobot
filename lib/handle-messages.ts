@@ -36,6 +36,7 @@ export async function handleNewAssistantMessage(
   event: GenericMessageEvent,
   botUserId: string,
   tenantId: TenantId,
+  currentUserId: string | null,
 ) {
   // Note: Bot messages are filtered at the event handler level in api/events.ts
   if (!event.thread_ts) return;
@@ -45,10 +46,11 @@ export async function handleNewAssistantMessage(
   await updateStatus(randomThinkingEmoji());
 
   const messages = await getThread(channel, thread_ts, botUserId);
+  const context = currentUserId ? { currentUserId } : undefined;
 
   let result: string;
   try {
-    result = await generateResponse(messages, tenantId);
+    result = await generateResponse(messages, tenantId, context);
   } catch (error) {
     console.error("Failed to generate response:", error);
     result = "Sorry, I encountered an error while generating a response. Please try again.";

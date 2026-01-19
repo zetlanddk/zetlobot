@@ -84,7 +84,6 @@ export async function getThread(
   });
 
   // Ensure we have messages
-
   if (!messages) throw new Error("No messages found in thread");
 
   const result = messages
@@ -111,6 +110,31 @@ export async function getThread(
 
 // Cache the bot ID to avoid API calls on every request
 let cachedBotId: string | null = null;
+
+// Cache for user info to avoid repeated API calls
+const userCache = new Map<string, { displayName: string; email?: string }>();
+
+export type UserInfo = { displayName: string; email?: string };
+
+export async function getUserInfo(userId: string): Promise<UserInfo> {
+  if (userCache.has(userId)) {
+    return userCache.get(userId)!;
+  }
+
+  try {
+    const { user } = await client.users.info({ user: userId });
+    const info: UserInfo = {
+      displayName: user?.profile?.display_name || user?.real_name || userId,
+      email: user?.profile?.email,
+    };
+    userCache.set(userId, info);
+    return info;
+  } catch (error) {
+    console.error(`Failed to fetch user info for ${userId}:`, error);
+    // Return userId as fallback so the tool still works
+    return { displayName: userId, email: undefined };
+  }
+}
 
 export const getBotId = async () => {
   if (cachedBotId) {
