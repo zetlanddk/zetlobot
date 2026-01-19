@@ -28,11 +28,11 @@ function buildToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPTool
       url: `${tenant.mainframeApiRoot}/api/v1/internal/mcp`,
       headers: { "X-Internal-Api-Key": secrets.mainframeApiKey },
     },
-    {
-      name: "chargebee-data-lookup",
-      url: tenant.chargebeeDataLookup,
-      headers: { Authorization: `Bearer ${secrets.chargebeeApiKey}` },
-    },
+    // {
+    //   name: "chargebee-data-lookup",
+    //   url: tenant.chargebeeDataLookup,
+    //   headers: { Authorization: `Bearer ${secrets.chargebeeApiKey}` },
+    // },
     {
       name: "chargebee-knowledge-base",
       url: tenant.chargebeeKnowledgeBase,
