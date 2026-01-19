@@ -79,11 +79,15 @@ export const generateResponse = async (
       const lastStep = steps[steps.length - 1];
       console.error("Generation failed with error", {
         finishReason,
+        rawFinishReason: lastStep?.rawFinishReason,
         warnings,
         modelId: response.modelId,
         stepCount: steps.length,
+        lastStepText: lastStep?.text,
+        lastStepContent: lastStep?.content,
         lastStepToolCalls: lastStep?.toolCalls?.map((tc) => tc.toolName),
         lastStepToolResults: lastStep?.toolResults,
+        responseHeaders: response.headers,
       });
       return `Something went wrong: An error occurred while processing your request${toolsContext}. Please try again.`;
     }
