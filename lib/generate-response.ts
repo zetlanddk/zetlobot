@@ -1,17 +1,50 @@
-import { ModelMessage, generateText, stepCountIs } from "ai";
+import { ModelMessage, generateText, stepCountIs, tool } from "ai";
 import { getToolsForTenant } from "./tools";
 import { getTenantById, TenantId } from "./tenants";
 import { google } from "@ai-sdk/google";
+import { getUserInfo } from "./slack-utils";
+import { z } from "zod";
 
 const MAX_STEPS = 10;
 
-export const generateResponse = async (messages: ModelMessage[], tenantId: TenantId) => {
+export type MessageContext = {
+  currentUserId?: string;
+};
+
+export const generateResponse = async (
+  messages: ModelMessage[],
+  tenantId: TenantId,
+  context?: MessageContext,
+) => {
   const tenant = getTenantById(tenantId);
   if (!tenant) {
     throw new Error(`Unknown tenant: ${tenantId}`);
   }
 
-  const tools = await getToolsForTenant(tenantId);
+  const mcpTools = await getToolsForTenant(tenantId);
+
+  // Build local tools based on context
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const localTools: Record<string, any> = {};
+
+  if (context?.currentUserId) {
+    localTools.get_current_user = tool({
+      description:
+        "Get the name and email of the current user who is sending the message. " +
+        "Use this when the user refers to themselves with 'me', 'I', 'my', etc. " +
+        "and you need to know who they are.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const userInfo = await getUserInfo(context.currentUserId!);
+        return {
+          name: userInfo.displayName,
+          email: userInfo.email ?? null,
+        };
+      },
+    });
+  }
+
+  const tools = { ...mcpTools, ...localTools };
 
   const { text, steps } = await generateText({
     model: google("gemini-2.5-pro"),

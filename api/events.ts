@@ -32,6 +32,22 @@ function isFromBot(event: SlackEvent): boolean {
 }
 
 /**
+ * Extract user ID from various Slack event types
+ */
+function getUserIdFromEvent(event: SlackEvent): string | null {
+  if (event.type === "app_mention") {
+    return event.user ?? null;
+  }
+  if (event.type === "message" && "user" in event) {
+    return event.user ?? null;
+  }
+  if (event.type === "assistant_thread_started") {
+    return event.assistant_thread.user_id ?? null;
+  }
+  return null;
+}
+
+/**
  * Send a message explaining the bot is not available in this channel
  */
 async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string) {
@@ -106,9 +122,10 @@ export async function POST(request: Request) {
 
     const botUserId = await getBotId();
     const tenantId = tenant.id;
+    const currentUserId = getUserIdFromEvent(event);
 
     if (event.type === "app_mention") {
-      waitUntil(handleNewAppMention(event, botUserId, tenantId));
+      waitUntil(handleNewAppMention(event, botUserId, tenantId, currentUserId));
     }
 
     if (event.type === "assistant_thread_started") {
@@ -121,7 +138,7 @@ export async function POST(request: Request) {
       !event.subtype &&
       event.channel_type === "im"
     ) {
-      waitUntil(handleNewAssistantMessage(event, botUserId, tenantId));
+      waitUntil(handleNewAssistantMessage(event, botUserId, tenantId, currentUserId));
     }
 
     return new Response("Success!", { status: 200 });
