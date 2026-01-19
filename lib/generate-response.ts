@@ -87,7 +87,7 @@ export const generateResponse = async (
       return `Something went wrong: I called ${uniqueTools.join(", ")} but failed to summarize the results. Please try rephrasing your request.`;
     }
 
-    return `Something went wrong: I was unable to generate a response${toolsContext}. Please try rephrasing your request.`;
+    return `Something went wrong: I was unable to generate a response${toolsContext}. Please try rephrasing your request. Finish reason: ${finishReason}`;
   }
 
   // Convert markdown to Slack mrkdwn format
