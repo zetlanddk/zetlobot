@@ -46,7 +46,7 @@ export const generateResponse = async (
 
   const tools = { ...mcpTools, ...localTools };
 
-  const { text, steps, finishReason } = await generateText({
+  const { text, steps, finishReason, warnings, response } = await generateText({
     model: google("gemini-3-pro-preview"),
     system: tenant.getSystemPrompt(),
     messages,
@@ -76,6 +76,15 @@ export const generateResponse = async (
       uniqueTools.length > 0 ? ` (called ${uniqueTools.join(", ")})` : "";
 
     if (finishReason === "error") {
+      const lastStep = steps[steps.length - 1];
+      console.error("Generation failed with error", {
+        finishReason,
+        warnings,
+        modelId: response.modelId,
+        stepCount: steps.length,
+        lastStepToolCalls: lastStep?.toolCalls?.map((tc) => tc.toolName),
+        lastStepToolResults: lastStep?.toolResults,
+      });
       return `Something went wrong: An error occurred while processing your request${toolsContext}. Please try again.`;
     }
 
