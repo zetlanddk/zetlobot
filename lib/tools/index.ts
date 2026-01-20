@@ -47,11 +47,11 @@ function buildMainframeConfig(tenant: TenantConfig, secrets: TenantSecrets, user
 
 function buildStaticToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPToolConfig[] {
   return [
-    {
-      name: "chargebee-data-lookup",
-      url: tenant.chargebeeDataLookup,
-      headers: { Authorization: `Bearer ${secrets.chargebeeApiKey}` },
-    },
+    // {
+    //   name: "chargebee-data-lookup",
+    //   url: tenant.chargebeeDataLookup,
+    //   headers: { Authorization: `Bearer ${secrets.chargebeeApiKey}` },
+    // },
     {
       name: "chargebee-knowledge-base",
       url: tenant.chargebeeKnowledgeBase,
