@@ -1,8 +1,8 @@
 import { ModelMessage, generateText, stepCountIs, tool } from "ai";
-import { getToolsForTenant } from "./tools";
+import { getToolsForTenant, UserContext } from "./tools";
 import { getTenantById, TenantId } from "./tenants";
 import { google } from "@ai-sdk/google";
-import { getUserInfo } from "./slack-utils";
+import { getUserInfo, UserInfo } from "./slack-utils";
 import { z } from "zod";
 
 const MAX_STEPS = 10;
@@ -21,13 +21,23 @@ export const generateResponse = async (
     throw new Error(`Unknown tenant: ${tenantId}`);
   }
 
-  const mcpTools = await getToolsForTenant(tenantId);
+  // Resolve user info early so we can pass email to mainframe
+  let userInfo: UserInfo | undefined;
+  if (context?.currentUserId) {
+    userInfo = await getUserInfo(context.currentUserId);
+  }
+
+  const userContext: UserContext | undefined = userInfo?.email
+    ? { email: userInfo.email }
+    : undefined;
+
+  const mcpTools = await getToolsForTenant(tenantId, userContext);
 
   // Build local tools based on context
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const localTools: Record<string, any> = {};
 
-  if (context?.currentUserId) {
+  if (userInfo) {
     localTools.get_current_user = tool({
       description:
         "Get the name and email of the current user who is sending the message. " +
@@ -35,7 +45,6 @@ export const generateResponse = async (
         "and you need to know who they are.",
       inputSchema: z.object({}),
       execute: async () => {
-        const userInfo = await getUserInfo(context.currentUserId!);
         return {
           name: userInfo.displayName,
           email: userInfo.email ?? null,

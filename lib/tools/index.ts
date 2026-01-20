@@ -14,20 +14,36 @@ export type MCPToolConfig = {
   headers?: Record<string, string>;
 };
 
+export type UserContext = {
+  email?: string;
+};
+
 type MCPClient = Awaited<ReturnType<typeof createMCPClient>>;
 type MCPClientTools = Awaited<ReturnType<MCPClient["tools"]>>;
 
-// Per-tenant caches
-const toolsCache = new Map<TenantId, MCPClientTools>();
+// Per-tenant caches for non-user-specific tools
+const staticToolsCache = new Map<TenantId, MCPClientTools>();
 const statusCache = new Map<TenantId, ToolStatus[]>();
 
-function buildToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPToolConfig[] {
+function buildMainframeConfig(tenant: TenantConfig, secrets: TenantSecrets, userContext?: UserContext): MCPToolConfig {
+  const headers: Record<string, string> = {
+    "X-Internal-Api-Key": secrets.mainframeApiKey,
+    "X-Slack-Bot-Token": env.SLACK_BOT_TOKEN,
+  };
+
+  if (userContext?.email) {
+    headers["X-User-Email"] = userContext.email;
+  }
+
+  return {
+    name: "mainframe",
+    url: `${tenant.mainframeApiRoot}/api/v1/internal/mcp`,
+    headers,
+  };
+}
+
+function buildStaticToolConfigs(tenant: TenantConfig): MCPToolConfig[] {
   return [
-    {
-      name: "mainframe",
-      url: `${tenant.mainframeApiRoot}/api/v1/internal/mcp`,
-      headers: { "X-Internal-Api-Key": secrets.mainframeApiKey },
-    },
     // {
     //   name: "chargebee-data-lookup",
     //   url: tenant.chargebeeDataLookup,
@@ -43,6 +59,39 @@ function buildToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPTool
       headers: { Authorization: `Token ${env.PAGER_DUTY_API_KEY}` },
     },
   ];
+}
+
+async function getStaticToolsForTenant(tenantId: TenantId, tenant: TenantConfig): Promise<{ tools: MCPClientTools; statuses: ToolStatus[] }> {
+  if (staticToolsCache.has(tenantId)) {
+    return {
+      tools: staticToolsCache.get(tenantId)!,
+      statuses: statusCache.get(tenantId) ?? [],
+    };
+  }
+
+  const configs = buildStaticToolConfigs(tenant);
+  let tools: MCPClientTools = {};
+  const statuses: ToolStatus[] = [];
+
+  for (const config of configs) {
+    try {
+      const clientTools = await initializeClient(config);
+      tools = { ...tools, ...clientTools };
+      statuses.push({ name: config.name, status: "ok" });
+    } catch (error) {
+      console.error(`Failed to initialize MCP client ${config.name}:`, error);
+      statuses.push({
+        name: config.name,
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  staticToolsCache.set(tenantId, tools);
+  statusCache.set(tenantId, statuses);
+
+  return { tools, statuses };
 }
 
 async function initializeClient(config: MCPToolConfig): Promise<MCPClientTools> {
@@ -62,41 +111,37 @@ async function initializeClient(config: MCPToolConfig): Promise<MCPClientTools> 
   return tools;
 }
 
-export async function getToolsForTenant(tenantId: TenantId): Promise<MCPClientTools> {
-  if (toolsCache.has(tenantId)) {
-    return toolsCache.get(tenantId)!;
-  }
-
+export async function getToolsForTenant(tenantId: TenantId, userContext?: UserContext): Promise<MCPClientTools> {
   const tenant = getTenantById(tenantId);
   if (!tenant) {
     throw new Error(`Unknown tenant: ${tenantId}`);
   }
 
+  // Get cached static tools (chargebee, pagerduty)
+  const { tools: staticTools, statuses: staticStatuses } = await getStaticToolsForTenant(tenantId, tenant);
+
+  // Build mainframe client fresh each time (has user-specific headers)
   const secrets = getTenantSecrets(tenantId);
-  const configs = buildToolConfigs(tenant, secrets);
+  const mainframeConfig = buildMainframeConfig(tenant, secrets, userContext);
 
-  let tools: MCPClientTools = {};
-  const statuses: ToolStatus[] = [];
-
-  for (const config of configs) {
-    try {
-      const clientTools = await initializeClient(config);
-      tools = { ...tools, ...clientTools };
-      statuses.push({ name: config.name, status: "ok" });
-    } catch (error) {
-      console.error(`Failed to initialize MCP client ${config.name}:`, error);
-      statuses.push({
-        name: config.name,
-        status: "error",
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+  const allStatuses = [...staticStatuses];
+  let mainframeTools: MCPClientTools = {};
+  try {
+    mainframeTools = await initializeClient(mainframeConfig);
+    allStatuses.push({ name: mainframeConfig.name, status: "ok" });
+  } catch (error) {
+    console.error(`Failed to initialize MCP client ${mainframeConfig.name}:`, error);
+    allStatuses.push({
+      name: mainframeConfig.name,
+      status: "error",
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
-  toolsCache.set(tenantId, tools);
-  statusCache.set(tenantId, statuses);
+  // Update status cache with all statuses
+  statusCache.set(tenantId, allStatuses);
 
-  return tools;
+  return { ...staticTools, ...mainframeTools };
 }
 
 export function getToolStatusesForTenant(tenantId: TenantId): ToolStatus[] {
