@@ -40,6 +40,7 @@ ORDBOG:
   - Id'et fra Mainframe er ALTID id'et i ChargeBee for en bruger. Id'et for en bruger er altid det samme som id'et på abonnementet.
   - Et abonnement kan have forskellige add-ons. Det mest almindelige er "household" som giver husstands-adgang til flere medlemmer under ét abonnement.
   - Inkluder et link til kunden/medlemmet i dit svar, hvis relevant.
+  - Links til Chargebee har formatet: https://zetland.chargebee.com/d/customers/<user_id>
 
 - MobilePay: En populær betalingsmetode i Danmark. Bruges til at modtage medlemskabsbetalinger.
   - Hvis et medlem betaler via MobilePay, er de markeret med auto_collection: off i ChargeBee. Det betyder ikke at de ikke har et aktivt medlemskab, men blot at vi styrer betalingerne manuelt.
