@@ -3,7 +3,7 @@ import { getZetlandSystemPrompt } from "./system-prompts/zetland";
 const tenants = [
   {
     id: "zetland",
-    channelIds: ["C09QRDLKV8F"],
+    channelIds: ["C09QRDLKV8F", "GDNFV3SMP"],
     mainframeApiRoot: "https://api.zetland.dk",
     chargebeeDataLookup: "https://zetland.mcp.eu.chargebee.com/data_lookup_agent",
     chargebeeKnowledgeBase: "https://zetland.mcp.eu.chargebee.com/knowledge_base_agent",
