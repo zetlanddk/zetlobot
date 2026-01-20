@@ -45,7 +45,7 @@ function buildMainframeConfig(tenant: TenantConfig, secrets: TenantSecrets, user
   };
 }
 
-function buildStaticToolConfigs(tenant: TenantConfig): MCPToolConfig[] {
+function buildStaticToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): MCPToolConfig[] {
   return [
     {
       name: "chargebee-data-lookup",
@@ -64,7 +64,7 @@ function buildStaticToolConfigs(tenant: TenantConfig): MCPToolConfig[] {
   ];
 }
 
-async function getStaticToolsForTenant(tenantId: TenantId, tenant: TenantConfig): Promise<{ tools: MCPClientTools; statuses: ToolStatus[] }> {
+async function getStaticToolsForTenant(tenantId: TenantId, tenant: TenantConfig, secrets: TenantSecrets): Promise<{ tools: MCPClientTools; statuses: ToolStatus[] }> {
   if (staticToolsCache.has(tenantId)) {
     return {
       tools: staticToolsCache.get(tenantId)!,
@@ -72,7 +72,7 @@ async function getStaticToolsForTenant(tenantId: TenantId, tenant: TenantConfig)
     };
   }
 
-  const configs = buildStaticToolConfigs(tenant);
+  const configs = buildStaticToolConfigs(tenant, secrets);
   let tools: MCPClientTools = {};
   const statuses: ToolStatus[] = [];
 
@@ -119,12 +119,12 @@ export async function getToolsForTenant(tenantId: TenantId, userContext?: UserCo
   if (!tenant) {
     throw new Error(`Unknown tenant: ${tenantId}`);
   }
+  const secrets = getTenantSecrets(tenantId);
 
   // Get cached static tools (chargebee, pagerduty)
-  const { tools: staticTools, statuses: staticStatuses } = await getStaticToolsForTenant(tenantId, tenant);
+  const { tools: staticTools, statuses: staticStatuses } = await getStaticToolsForTenant(tenantId, tenant, secrets);
 
   // Build mainframe client fresh each time (has user-specific headers)
-  const secrets = getTenantSecrets(tenantId);
   const mainframeConfig = buildMainframeConfig(tenant, secrets, userContext);
 
   const allStatuses = [...staticStatuses];
