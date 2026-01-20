@@ -23,6 +23,9 @@ type MCPClientTools = Awaited<ReturnType<MCPClient["tools"]>>;
 
 // Per-tenant caches for non-user-specific tools
 const staticToolsCache = new Map<TenantId, MCPClientTools>();
+const staticStatusCache = new Map<TenantId, ToolStatus[]>();
+
+// Combined status cache (static + mainframe) for getToolStatusesForTenant
 const statusCache = new Map<TenantId, ToolStatus[]>();
 
 function buildMainframeConfig(tenant: TenantConfig, secrets: TenantSecrets, userContext?: UserContext): MCPToolConfig {
@@ -65,7 +68,7 @@ async function getStaticToolsForTenant(tenantId: TenantId, tenant: TenantConfig)
   if (staticToolsCache.has(tenantId)) {
     return {
       tools: staticToolsCache.get(tenantId)!,
-      statuses: statusCache.get(tenantId) ?? [],
+      statuses: staticStatusCache.get(tenantId) ?? [],
     };
   }
 
@@ -89,7 +92,7 @@ async function getStaticToolsForTenant(tenantId: TenantId, tenant: TenantConfig)
   }
 
   staticToolsCache.set(tenantId, tools);
-  statusCache.set(tenantId, statuses);
+  staticStatusCache.set(tenantId, statuses);
 
   return { tools, statuses };
 }
