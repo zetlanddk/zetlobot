@@ -4,9 +4,9 @@ const tenants = [
   {
     id: "zetland",
     channelIds: ["C09QRDLKV8F"],
-    mainframeApiRoot: "https://api-staging.zetland.dk",
-    chargebeeDataLookup: "https://zetland-test.mcp.eu.chargebee.com/data_lookup_agent",
-    chargebeeKnowledgeBase: "https://zetland-test.mcp.eu.chargebee.com/knowledge_base_agent",
+    mainframeApiRoot: "https://api.zetland.dk",
+    chargebeeDataLookup: "https://zetland.mcp.eu.chargebee.com/data_lookup_agent",
+    chargebeeKnowledgeBase: "https://zetland.mcp.eu.chargebee.com/knowledge_base_agent",
     getSystemPrompt: getZetlandSystemPrompt,
   },
 ] as const;
