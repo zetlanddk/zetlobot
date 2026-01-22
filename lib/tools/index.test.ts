@@ -100,7 +100,7 @@ describe("MCP Tools", () => {
       expect(tools).toBeDefined();
     }, 30000);
 
-    it("chargebee-data-lookup - should initialize successfully", async () => {
+    it.skip("chargebee-data-lookup - should initialize successfully", async () => {
       const config = configs.find(c => c.name === "chargebee-data-lookup");
       expect(config).toBeDefined();
 
@@ -119,7 +119,7 @@ describe("MCP Tools", () => {
       expect(tools).toBeDefined();
     }, 30000);
 
-    it("chargebee-knowledge-base - should initialize successfully", async () => {
+    it.skip("chargebee-knowledge-base - should initialize successfully", async () => {
       const config = configs.find(c => c.name === "chargebee-knowledge-base");
       expect(config).toBeDefined();
 
@@ -193,7 +193,7 @@ describe("MCP Tools", () => {
       }
     }, 30000);
 
-    it("compare chargebee notification response", async () => {
+    it.skip("compare chargebee notification response", async () => {
       const config = configs.find(c => c.name === "chargebee-data-lookup");
       expect(config).toBeDefined();
 
@@ -269,7 +269,7 @@ describe("MCP Tools", () => {
     }, 30000);
   });
 
-  describe("All tools combined", () => {
+  describe.skip("All tools combined", () => {
     it("should initialize all MCP clients and get tools", async () => {
       const results: { name: string; status: "ok" | "error"; tools?: string[]; error?: string }[] = [];
 

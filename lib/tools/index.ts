@@ -52,15 +52,15 @@ function buildStaticToolConfigs(tenant: TenantConfig, secrets: TenantSecrets): M
     //   url: tenant.chargebeeDataLookup,
     //   headers: { Authorization: `Bearer ${secrets.chargebeeApiKey}` },
     // },
-    {
-      name: "chargebee-knowledge-base",
-      url: tenant.chargebeeKnowledgeBase,
-    },
-    {
-      name: "pager-duty",
-      url: "https://mcp.pagerduty.com/mcp",
-      headers: { Authorization: `Token ${env.PAGER_DUTY_API_KEY}` },
-    },
+    // {
+    //   name: "chargebee-knowledge-base",
+    //   url: tenant.chargebeeKnowledgeBase,
+    // },
+    // {
+    //   name: "pager-duty",
+    //   url: "https://mcp.pagerduty.com/mcp",
+    //   headers: { Authorization: `Token ${env.PAGER_DUTY_API_KEY}` },
+    // },
   ];
 }
 
