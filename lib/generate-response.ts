@@ -56,7 +56,7 @@ export const generateResponse = async (
   const tools = { ...mcpTools, ...localTools };
 
   const { text, steps, finishReason, warnings, response } = await generateText({
-    model: google("gemini-3-pro-preview"),
+    model: google("gemini-3.1-pro-preview"),
     system: tenant.getSystemPrompt(),
     messages,
     tools,
