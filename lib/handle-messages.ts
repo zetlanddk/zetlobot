@@ -25,8 +25,12 @@ export async function assistantThreadMessage(
     thread_ts: thread_ts,
     prompts: [
       {
-        title: "Get the weather",
-        message: "What is the current weather in London?",
+        title: "Slå en bruger op",
+        message: "Kan du finde brugeren med e-mail eksempel@zetland.dk?",
+      },
+      {
+        title: "Tjek medlemskab",
+        message: "Er denne bruger et aktivt medlem?",
       },
     ],
   });

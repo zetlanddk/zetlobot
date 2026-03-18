@@ -31,7 +31,7 @@ export const generateResponse = async (
     ? { email: userInfo.email }
     : undefined;
 
-  const mcpTools = await getToolsForTenant(tenantId, userContext);
+  const { tools: mcpTools, close: closeMcp } = await getToolsForTenant(tenantId, userContext);
 
   // Build local tools based on context
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,14 +55,24 @@ export const generateResponse = async (
 
   const tools = { ...mcpTools, ...localTools };
 
-  const { text, steps, finishReason, warnings, response } = await generateText({
-    model: google("gemini-3.1-pro-preview"),
-    system: tenant.getSystemPrompt(),
-    messages,
-    tools,
-    stopWhen: stepCountIs(MAX_STEPS),
-    temperature: 0.3,
-  });
+  let text: string;
+  let steps: Awaited<ReturnType<typeof generateText>>["steps"];
+  let finishReason: Awaited<ReturnType<typeof generateText>>["finishReason"];
+  let warnings: Awaited<ReturnType<typeof generateText>>["warnings"];
+  let response: Awaited<ReturnType<typeof generateText>>["response"];
+
+  try {
+    ({ text, steps, finishReason, warnings, response } = await generateText({
+      model: google("gemini-3.1-pro-preview"),
+      system: tenant.getSystemPrompt(),
+      messages,
+      tools,
+      stopWhen: stepCountIs(MAX_STEPS),
+      temperature: 0.3,
+    }));
+  } finally {
+    await closeMcp().catch((err) => console.error("Failed to close MCP client:", err));
+  }
 
   const hitStepLimit = steps.length >= MAX_STEPS;
 
@@ -113,5 +123,8 @@ export const generateResponse = async (
   }
 
   // Convert markdown to Slack mrkdwn format
-  return text.replace(/\[(.*?)\]\((.*?)\)/g, "<$2|$1>").replace(/\*\*/g, "*");
+  return text
+    .replace(/^#{1,6}\s+(.+)$/gm, "*$1*")   // headings to bold
+    .replace(/\[(.*?)\]\((.*?)\)/g, "<$2|$1>") // links
+    .replace(/\*\*/g, "*");                    // bold
 };
