@@ -1,7 +1,7 @@
 import { ModelMessage, generateText, stepCountIs, tool } from "ai";
 import { getToolsForTenant, UserContext } from "./tools";
 import { getTenantById, TenantId } from "./tenants";
-import { google } from "@ai-sdk/google";
+import { anthropic } from "@ai-sdk/anthropic";
 import { getUserInfo, UserInfo } from "./slack-utils";
 import { z } from "zod";
 
@@ -56,7 +56,7 @@ export const generateResponse = async (
   const tools = { ...mcpTools, ...localTools };
 
   const { text, steps, finishReason, warnings, response } = await generateText({
-    model: google("gemini-3.1-pro-preview"),
+    model: anthropic("claude-sonnet-4-6"),
     system: tenant.getSystemPrompt(),
     messages,
     tools,
