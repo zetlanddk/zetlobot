@@ -55,6 +55,11 @@ export const generateResponse = async (
 
   const tools = { ...mcpTools, ...localTools };
 
+  // Claude requires the conversation to end with a user message
+  while (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
+    messages.pop();
+  }
+
   const { text, steps, finishReason, warnings, response } = await generateText({
     model: anthropic("claude-sonnet-4-6"),
     system: tenant.getSystemPrompt(),
