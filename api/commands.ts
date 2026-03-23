@@ -61,6 +61,13 @@ export async function POST(request: Request) {
     });
   }
 
+  if (!payload.response_url) {
+    return Response.json({
+      response_type: "ephemeral",
+      text: "Missing response URL — cannot deliver results.",
+    });
+  }
+
   // Build prompt and run through the normal LLM pipeline in the background
   const prompt = command.prompt(payload.text);
 

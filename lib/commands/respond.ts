@@ -10,7 +10,7 @@ export async function sendDeferredResponse(
       body: JSON.stringify({
         text,
         response_type: responseType,
-        replace_original: true,
+        replace_original: false,
       }),
     });
 
