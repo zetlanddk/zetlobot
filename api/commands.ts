@@ -1,22 +1,32 @@
 import { waitUntil } from "@vercel/functions";
 import { verifyRequest } from "../lib/slack-utils";
 import { getTenantByChannelId } from "../lib/tenants";
-import { parseSlashCommandPayload } from "../lib/commands/types";
-import { getHandler } from "../lib/commands/registry";
+import { generateResponse } from "../lib/generate-response";
+import { commands, getHelpText } from "../lib/commands/commands";
 import { sendDeferredResponse } from "../lib/commands/respond";
+
+function parsePayload(body: string) {
+  const params = new URLSearchParams(body);
+  return {
+    command: params.get("command") ?? "",
+    text: (params.get("text") ?? "").trim(),
+    response_url: params.get("response_url") ?? "",
+    user_id: params.get("user_id") ?? "",
+    channel_id: params.get("channel_id") ?? "",
+  };
+}
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
 
-  // Verify Slack signature
   try {
     await verifyRequest({ request, rawBody });
   } catch (error) {
-    console.error("Slash command request verification failed:", error);
+    console.error("Slash command verification failed:", error);
     return new Response("Invalid request signature", { status: 401 });
   }
 
-  const payload = parseSlashCommandPayload(rawBody);
+  const payload = parsePayload(rawBody);
 
   // Resolve tenant from channel
   const tenant = getTenantByChannelId(payload.channel_id);
@@ -27,24 +37,40 @@ export async function POST(request: Request) {
     });
   }
 
-  // Find handler
-  const handler = getHandler(payload.command);
-  if (!handler) {
+  // /help responds immediately — no LLM needed
+  if (payload.command === "/help") {
+    return Response.json({
+      response_type: "ephemeral",
+      text: getHelpText(),
+    });
+  }
+
+  // Look up command
+  const command = commands[payload.command];
+  if (!command) {
     return Response.json({
       response_type: "ephemeral",
       text: `Unknown command: ${payload.command}`,
     });
   }
 
-  // Run handler in background, send result via response_url
+  if (!payload.text) {
+    return Response.json({
+      response_type: "ephemeral",
+      text: `Usage: \`${command.usage}\``,
+    });
+  }
+
+  // Build prompt and run through the normal LLM pipeline in the background
+  const prompt = command.prompt(payload.text);
+
   waitUntil(
-    handler(payload, tenant.id).then(
-      (response) =>
-        sendDeferredResponse(
-          payload.response_url,
-          response.text,
-          response.response_type ?? "ephemeral",
-        ),
+    generateResponse(
+      [{ role: "user", content: prompt }],
+      tenant.id,
+      { currentUserId: payload.user_id },
+    ).then(
+      (text) => sendDeferredResponse(payload.response_url, text),
       (error) => {
         console.error(`Command ${payload.command} failed:`, error);
         return sendDeferredResponse(
@@ -55,7 +81,6 @@ export async function POST(request: Request) {
     ),
   );
 
-  // Immediate acknowledgment
   return Response.json({
     response_type: "ephemeral",
     text: "Working on it...",
