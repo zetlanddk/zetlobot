@@ -4,6 +4,9 @@
   "functions": {
     "api/events.ts": {
       "maxDuration": 120
+    },
+    "api/commands.ts": {
+      "maxDuration": 60
     }
   },
   "outputDirectory": "dist"
