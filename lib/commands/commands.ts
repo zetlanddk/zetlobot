@@ -10,6 +10,11 @@ export const commands: Record<string, Command> = {
     description: "Look up a member by email, name, id, or url_id",
     usage: "/member <email, name, id, or url_id>",
   },
+  "/company": {
+    prompt: (text) => `Look up company: ${text}`,
+    description: "Look up a company by name or id",
+    usage: "/company <name or id>",
+  },
   "/impersonate": {
     prompt: (text) => `Generate a magic login link for user: ${text}`,
     description: "Generate a magic login link for a user",
