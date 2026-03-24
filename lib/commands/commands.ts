@@ -7,8 +7,8 @@ type Command = {
 export const commands: Record<string, Command> = {
   "/member": {
     prompt: (text) => `Look up user: ${text}`,
-    description: "Look up a member in the system",
-    usage: "/member <email or name>",
+    description: "Look up a member by email, name, id, or url_id",
+    usage: "/member <email, name, id, or url_id>",
   },
   "/impersonate": {
     prompt: (text) => `Generate a magic login link for user: ${text}`,
