@@ -5,10 +5,10 @@ type Command = {
 };
 
 export const commands: Record<string, Command> = {
-  "/lookup": {
+  "/member": {
     prompt: (text) => `Look up user: ${text}`,
-    description: "Look up a user in the system",
-    usage: "/lookup <email or name>",
+    description: "Look up a member in the system",
+    usage: "/member <email or name>",
   },
   "/impersonate": {
     prompt: (text) => `Generate a magic login link for user: ${text}`,

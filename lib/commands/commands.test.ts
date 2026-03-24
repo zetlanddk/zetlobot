@@ -3,7 +3,7 @@ import { commands, getHelpText } from "./commands";
 
 describe("commands", () => {
   it("should generate prompts with user input", () => {
-    expect(commands["/lookup"].prompt("test@example.com")).toBe(
+    expect(commands["/member"].prompt("test@example.com")).toBe(
       "Look up user: test@example.com",
     );
     expect(commands["/impersonate"].prompt("test@example.com")).toBe(
