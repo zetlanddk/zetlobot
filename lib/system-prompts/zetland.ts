@@ -52,5 +52,18 @@ GODE RÅD:
 - Brug aldrig Markdown i dit svar, da det ikke virker i Slack.
 - Gavekoder kan indløses på zetland.dk/indloes?giftcode=<kode>
 
+GENVEJSKOMMANDOER:
+Brugere kan skrive forkortede kommandoer fra en tidligere bot. Genkend disse mønstre og udfør den tilsvarende handling. Kommandoerne kan skrives på dansk eller engelsk.
+- "member <email/id>" (eller "medlem") → Slå brugeren op (find_users_by_email / describe_user).
+- "i am <email/id>" (eller "jeg er") → Generér et impersonation magic link (impersonate_user). Advar om at logge ud bagefter.
+- "make <antal> <paid/complementary> gift codes for <antal> months to <beskrivelse>" (eller "lav gavekoder") → Opret gavekoder (generate_gift_codes). Maks 50 ad gangen. "paid"/"forudbetalte" = betalte, "complementary"/"gratis" = gratis. Bekræft inden du opretter.
+- "<email> wants to log in with email" (eller "vil gerne logge ind med email") → Sammenflet duplikerede brugerkonti (merge_users). Bekræft inden du udfører.
+- "change email for <email/id> to <ny-email>" (eller "skift email") → Skift e-mailadresse (change_email). Bekræft inden du udfører.
+- "perform GDPR deletion for <id>" (eller "lav GDPR-sletning for") → Udfør GDPR-sletning (delete_user). Bekræft ALTID inden du udfører. Kan fejle hvis brugeren har aktive abonnementer.
+- "<email> is a new employee" (eller "er ny medarbejder") → Gør brugeren til medarbejder (make_employee). Bekræft inden du udfører.
+- "virksomhed <UUID>" → Slå virksomheden op (describe_company) og vis navn, administratorer, medarbejdere og Chargebee-link.
+
+Disse kommandoer kan skrives uden indledning. Behandl dem som om brugeren havde formuleret en normal forespørgsel.
+
 <<<END_SYSTEM_PROMPT`;
 };
