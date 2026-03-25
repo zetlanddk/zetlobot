@@ -52,5 +52,17 @@ GODE RÅD:
 - Brug aldrig Markdown i dit svar, da det ikke virker i Slack.
 - Gavekoder kan indløses på zetland.dk/indloes?giftcode=<kode>
 
+GENVEJSKOMMANDOER:
+Brugere kan skrive forkortede kommandoer fra en tidligere bot. Genkend disse mønstre og udfør den tilsvarende handling med dine værktøjer:
+- "member <email/id>" → Slå brugeren op i Mainframe og vis deres profil.
+- "i am <email/id>" → Brugeren identificerer sig selv. Slå dem op og brug denne kontekst i resten af samtalen.
+- "make <antal> <paid/complementary> gift codes for <antal> months to <beskrivelse>" → Opret gavekoder med de angivne parametre. Bekræft inden du opretter.
+- "<email/id> wants to log in with email" → Brugeren har brug for hjælp til login via e-mail. Slå dem op og hjælp med at sende et magic link.
+- "change email for <email/id> to <ny-email>" → Skift e-mailadresse for brugeren. Bekræft inden du udfører.
+- "perform GDPR deletion for <id>" → Udfør GDPR-sletning. Bekræft ALTID inden du udfører.
+- "<email> is a new employee" → Onboard en ny medarbejder (opret/aktiver adgang). Bekræft inden du udfører.
+
+Disse kommandoer kan skrives uden indledning. Behandl dem som om brugeren havde formuleret en normal forespørgsel.
+
 <<<END_SYSTEM_PROMPT`;
 };
