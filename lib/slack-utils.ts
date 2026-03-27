@@ -145,6 +145,18 @@ export async function getUserInfo(userId: string): Promise<UserInfo> {
   }
 }
 
+export async function isBotInThread(
+  channelId: string,
+  threadTs: string,
+): Promise<boolean> {
+  const { messages } = await client.conversations.replies({
+    channel: channelId,
+    ts: threadTs,
+    limit: 50,
+  });
+  return messages?.some((m) => !!m.bot_id) ?? false;
+}
+
 export const getBotId = async () => {
   if (cachedBotId) {
     return cachedBotId;
