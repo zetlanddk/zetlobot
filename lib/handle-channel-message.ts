@@ -3,6 +3,7 @@ import { client, getThread } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
+import { shouldRespond } from "./should-respond";
 
 /**
  * Posts an initial message in a thread and returns a function to update it.
@@ -42,6 +43,12 @@ export async function handleChannelMessage(
   currentUserId: string | null,
 ) {
   console.log("Handling channel message (auto-respond)");
+
+  const respond = await shouldRespond(event, botUserId);
+  if (!respond) {
+    console.log("Decided not to respond to channel message");
+    return;
+  }
 
   const { thread_ts, channel } = event;
   const context = currentUserId ? { currentUserId } : undefined;
