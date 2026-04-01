@@ -1,4 +1,4 @@
-import { getZetlandSystemPrompt } from "./system-prompts/zetland";
+import { buildSystemPrompt } from "./buildSystemPrompt";
 
 const tenants = [
   {
@@ -7,7 +7,10 @@ const tenants = [
     mainframeApiRoot: "https://api.zetland.dk",
     chargebeeDataLookup: "https://zetland.mcp.eu.chargebee.com/data_lookup_agent",
     chargebeeKnowledgeBase: "https://zetland.mcp.eu.chargebee.com/knowledge_base_agent",
-    getSystemPrompt: getZetlandSystemPrompt,
+    chargebeeSite: "zetland",
+    language: "Danish",
+    getSystemPrompt: () =>
+      buildSystemPrompt({ chargebeeSite: "zetland", language: "Danish" }),
   },
 ] as const;
 

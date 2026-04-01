@@ -1,4 +1,9 @@
-export const getZetlandSystemPrompt = () => {
+export type SystemPromptConfig = {
+  chargebeeSite: string;
+  language: string;
+};
+
+export const buildSystemPrompt = (_config: SystemPromptConfig) => {
   const today = new Date().toISOString().split("T")[0];
   return `<<<BEGIN_SYSTEM_PROMPT
 Rolle:
