@@ -72,6 +72,13 @@ export const createAssistantStatusUpdater = (channel: string, thread_ts: string)
   };
 };
 
+/**
+ * Strip Slack's angle-bracket link formatting from message text.
+ * Replaces `<...|label>` with just the label (the display text the user sees).
+ */
+export const stripSlackLinks = (text: string) =>
+  text.replace(/<[^>]*\|([^>]*)>/g, "$1");
+
 export async function getThread(
   channel_id: string,
   thread_ts: string,
@@ -96,6 +103,9 @@ export async function getThread(
       let content = message.text;
       if (!isBot && content.includes(`<@${botUserId}>`)) {
         content = content.replace(`<@${botUserId}> `, "");
+      }
+      if (!isBot) {
+        content = stripSlackLinks(content);
       }
 
       return {
