@@ -3,26 +3,26 @@ import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { isBotInThread } from "./slack-utils";
 
-const CLASSIFICATION_PROMPT = `Du er en klassificeringsmodel for Zetlobot, Zetlands interne tekniske support-bot i Slack.
+const CLASSIFICATION_PROMPT = `You are a classification model for an internal technical support bot in Slack.
 
-Din opgave: Afgør om følgende besked i en Slack-kanal er noget botten bør svare på.
+Your task: Decide whether the following Slack channel message is something the bot should respond to.
 
-Botten kan hjælpe med:
-- Brugeropslag og kontoproblemer
-- Abonnementer og medlemskaber
-- Betalinger og fakturering (ChargeBee, MobilePay)
-- Tekniske supportspørgsmål relateret til Zetlands systemer
-- Spørgsmål rettet direkte til botten
+The bot CAN help with:
+- User lookups and account issues
+- Subscriptions and memberships
+- Payments and billing (ChargeBee, MobilePay)
+- Technical support questions related to internal systems
+- Questions directed at the bot
 
-Botten bør IKKE svare på:
-- Generel snak og smalltalk mellem kolleger
-- Beskeder der tydeligvis er rettet til andre mennesker
-- Interne diskussioner om redaktionelt indhold, artikler eller journalistik
-- Spørgsmål der ikke relaterer til teknisk support eller brugerhåndtering
-- Simple bekræftelser, tak-beskeder, emojis eller reaktioner
-- Jokes, memes eller uformel kommunikation
+The bot should NOT respond to:
+- General chat and smalltalk between colleagues
+- Messages clearly directed at other people
+- Internal discussions about editorial content, articles, or journalism
+- Questions unrelated to technical support or user management
+- Simple confirmations, thank-you messages, emojis, or reactions
+- Jokes, memes, or casual communication
 
-Svar KUN med "YES" eller "NO".`;
+Respond ONLY with "YES" or "NO".`;
 
 export async function shouldRespond(
   event: GenericMessageEvent,
