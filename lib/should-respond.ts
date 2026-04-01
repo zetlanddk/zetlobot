@@ -1,7 +1,7 @@
 import type { GenericMessageEvent } from "@slack/web-api";
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { isBotInThread } from "./slack-utils";
+import { isBotInThread, stripBotMention } from "./slack-utils";
 
 const CLASSIFICATION_PROMPT = `You are a classification model for an internal technical support bot in Slack.
 
@@ -31,7 +31,7 @@ export async function shouldRespond(
   // If we're in a thread where the bot is already participating, always respond
   if (event.thread_ts) {
     try {
-      const botInThread = await isBotInThread(event.channel, event.thread_ts);
+      const botInThread = await isBotInThread(event.channel, event.thread_ts, botUserId);
       if (botInThread) {
         return true;
       }
@@ -41,9 +41,7 @@ export async function shouldRespond(
     }
   }
 
-  const content = (event.text ?? "")
-    .replace(new RegExp(`<@${botUserId}>\\s*`, "g"), "")
-    .trim();
+  const content = stripBotMention(event.text ?? "", botUserId);
 
   if (!content) {
     return false;
@@ -60,7 +58,7 @@ export async function shouldRespond(
 
     return text.trim().toUpperCase().startsWith("YES");
   } catch (error) {
-    console.error("Failed to classify message, defaulting to respond:", error);
-    return true;
+    console.error("Failed to classify message, defaulting to not respond:", error);
+    return false;
   }
 }
