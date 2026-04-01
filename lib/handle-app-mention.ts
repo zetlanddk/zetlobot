@@ -1,35 +1,8 @@
 import { AppMentionEvent } from "@slack/web-api";
-import { client, getThread } from "./slack-utils";
+import { getThread, createMessageUpdater } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
-
-/**
- * Posts an initial message and returns a function to update it.
- * Used for showing a "thinking" indicator that gets replaced with the response.
- */
-const createMessageUpdater = async (
-  initialStatus: string,
-  event: AppMentionEvent,
-) => {
-  const initialMessage = await client.chat.postMessage({
-    channel: event.channel,
-    thread_ts: event.thread_ts ?? event.ts,
-    text: initialStatus,
-  });
-
-  if (!initialMessage || !initialMessage.ts)
-    throw new Error("Failed to post initial message");
-
-  const updateMessage = async (status: string) => {
-    await client.chat.update({
-      channel: event.channel,
-      ts: initialMessage.ts as string,
-      text: status,
-    });
-  };
-  return updateMessage;
-};
 
 export async function handleNewAppMention(
   event: AppMentionEvent,
@@ -41,7 +14,7 @@ export async function handleNewAppMention(
   console.log("Handling app mention");
 
   const { thread_ts, channel } = event;
-  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), event);
+  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), channel, thread_ts ?? event.ts);
   const context = currentUserId ? { currentUserId } : undefined;
 
   let result: string;
