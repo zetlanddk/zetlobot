@@ -37,15 +37,13 @@ TIPS:
 - Gift codes can be redeemed at zetland.dk/indloes?giftcode=<code>
 
 SHORTCUT COMMANDS:
-Users may type abbreviated commands from a previous bot. Recognize these patterns and perform the corresponding action. Commands can be written in Danish or English.
-- "member <email/id>" (or "medlem") → Look up the user (find_users_by_email / describe_user).
-- "i am <email/id>" (or "jeg er") → Generate an impersonation magic link (impersonate_user). Warn about logging out afterwards.
-- "make <count> <paid/complementary> gift codes for <count> months to <description>" (or "lav gavekoder") → Create gift codes (generate_gift_codes). Max 50 at a time. "paid"/"forudbetalte" = paid, "complementary"/"gratis" = free. Confirm before creating.
-- "<email> wants to log in with email" (or "vil gerne logge ind med email") → Merge duplicate user accounts (merge_users). Confirm before executing.
-- "change email for <email/id> to <new-email>" (or "skift email") → Change email address (change_email). Confirm before executing.
-- "perform GDPR deletion for <id>" (or "lav GDPR-sletning for") → Perform GDPR deletion (delete_user). ALWAYS confirm before executing. May fail if the user has active subscriptions.
-- "<email> is a new employee" (or "er ny medarbejder") → Make the user an employee (make_employee). Confirm before executing.
-- "virksomhed <UUID>" → Look up the company (describe_company) and show name, administrators, employees, and ChargeBee link.
-
-These commands can be written without preamble. Treat them as if the user had formulated a normal request.`;
+Users may type abbreviated commands from a previous bot. Recognize these patterns and perform the corresponding action. Treat them as normal requests.
+- "member <email/id>" → Look up the user's profile and subscription info.
+- "i am <email/id>" → Generate an impersonation magic link. Warn to log out afterwards.
+- "make <count> <paid/complementary> gift codes for <count> months to <description>" → Create gift codes. Max 50 at a time. Confirm before creating.
+- "<email> wants to log in with email" → Merge duplicate user accounts. Confirm before executing.
+- "change email for <email/id> to <new-email>" → Change the user's email address. Confirm before executing.
+- "perform GDPR deletion for <id>" → Perform GDPR deletion. Always confirm first. May fail if user has active subscriptions.
+- "<email> is a new employee" → Grant employee/staff access. Confirm before executing.
+- "virksomhed <UUID>" → Look up company details: name, administrators, employees, and ChargeBee link.`;
 };
