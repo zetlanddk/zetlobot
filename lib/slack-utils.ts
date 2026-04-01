@@ -136,6 +136,53 @@ export async function getUserInfo(userId: string): Promise<UserInfo> {
   }
 }
 
+export async function isBotInThread(
+  channelId: string,
+  threadTs: string,
+  botUserId: string,
+): Promise<boolean> {
+  const { messages } = await client.conversations.replies({
+    channel: channelId,
+    ts: threadTs,
+    limit: 50,
+  });
+  return messages?.some((m) => m.user === botUserId) ?? false;
+}
+
+/**
+ * Strip bot mentions from message text.
+ */
+export function stripBotMention(text: string, botUserId: string): string {
+  return text.replace(new RegExp(`<@${botUserId}>\\s*`, "g"), "").trim();
+}
+
+/**
+ * Posts an initial message in a thread and returns a function to update it.
+ * Used for showing a "thinking" indicator that gets replaced with the response.
+ */
+export async function createMessageUpdater(
+  initialStatus: string,
+  channel: string,
+  threadTs: string,
+) {
+  const initialMessage = await client.chat.postMessage({
+    channel,
+    thread_ts: threadTs,
+    text: initialStatus,
+  });
+
+  if (!initialMessage || !initialMessage.ts)
+    throw new Error("Failed to post initial message");
+
+  return async (status: string) => {
+    await client.chat.update({
+      channel,
+      ts: initialMessage.ts as string,
+      text: status,
+    });
+  };
+}
+
 export const getBotId = async () => {
   if (cachedBotId) {
     return cachedBotId;
