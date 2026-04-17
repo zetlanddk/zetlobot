@@ -61,7 +61,7 @@ export const generateResponse = async (
   }
 
   const { text, steps, finishReason, warnings, response } = await generateText({
-    model: anthropic("claude-sonnet-4-6"),
+    model: anthropic("claude-opus-4-7"),
     system: tenant.getSystemPrompt(),
     messages,
     tools,
