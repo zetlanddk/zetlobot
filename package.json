@@ -13,18 +13,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.58",
-    "@ai-sdk/mcp": "^1.0.23",
-    "@modelcontextprotocol/sdk": "^1.27.1",
-    "@slack/web-api": "^7.14.1",
+    "@ai-sdk/anthropic": "^3.0.71",
+    "@ai-sdk/mcp": "^1.0.36",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@slack/web-api": "^7.15.1",
     "@vercel/functions": "^3.4.3",
-    "ai": "^6.0.108",
+    "ai": "^6.0.168",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^25.3.3",
-    "dotenv": "^17.3.1",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "@types/node": "^25.6.0",
+    "dotenv": "^17.4.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.4"
   }
 }
