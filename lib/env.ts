@@ -4,9 +4,6 @@ const envSchema = z.object({
   // Global Slack configuration
   SLACK_BOT_TOKEN: z.string().min(1, "SLACK_BOT_TOKEN is required"),
   SLACK_SIGNING_SECRET: z.string().min(1, "SLACK_SIGNING_SECRET is required"),
-
-  // Global service keys (shared across all tenants)
-  PAGER_DUTY_API_KEY: z.string().min(1, "PAGER_DUTY_API_KEY is required"),
 });
 
 function parseEnv() {
