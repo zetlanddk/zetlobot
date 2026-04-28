@@ -1,28 +1,18 @@
-import { getToolsForTenant, getToolStatusesForTenant, ToolStatus } from "../lib/tools";
-import { TenantId } from "../lib/tenants";
-
+// Liveness probe. By the time this handler runs, env validation has already
+// passed (it runs at module load), so reaching this code path is itself the
+// signal that the function is healthy enough to respond. Backing services
+// (Mainframe, Supabase, Redis, Anthropic) are not probed here — their health
+// surfaces through actual request paths and their own status pages.
 export async function GET() {
-  const timestamp = new Date().toISOString();
-
-  // Check tools for the default tenant (zetland)
-  const tenantId: TenantId = "zetland";
-  await getToolsForTenant(tenantId);
-
-  const toolStatuses = getToolStatusesForTenant(tenantId);
-  const allToolsHealthy = toolStatuses.every((t: ToolStatus) => t.status === "ok");
-
-  const healthData = {
-    status: allToolsHealthy ? "healthy" : "degraded",
-    timestamp,
+  const body = {
+    status: "ok",
+    timestamp: new Date().toISOString(),
     service: "zetlobot",
     version: "1.0.0",
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || "production",
-    tenant: tenantId,
-    tools: toolStatuses,
+    commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "production",
   };
-
-  return new Response(JSON.stringify(healthData, null, 2), {
+  return new Response(JSON.stringify(body, null, 2), {
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": "no-cache",

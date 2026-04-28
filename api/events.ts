@@ -48,6 +48,21 @@ function getUserIdFromEvent(event: SlackEvent): string | null {
 }
 
 /**
+ * Extract the user's home workspace (team) from the event. For Slack Connect
+ * shared-channel events the user's team is in `event.user_team` (or sometimes
+ * `event.team`); for events posted entirely within the bot's installed
+ * workspace those fields are absent and the envelope's team_id is correct.
+ *
+ * NOTE: Field semantics across event types are not fully verified — this is
+ * the best-effort extraction order until Slack Connect dev verification lands.
+ */
+function getUserTeamFromEvent(event: SlackEvent, payloadTeamId: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const e = event as any;
+  return e.user_team ?? e.team ?? payloadTeamId;
+}
+
+/**
  * Send a message explaining the bot is not available in this channel
  */
 async function sendChannelNotAllowedMessage(event: SlackEvent, channelId: string) {
@@ -123,9 +138,10 @@ export async function POST(request: Request) {
     const botUserId = await getBotId();
     const tenantId = tenant.id;
     const currentUserId = getUserIdFromEvent(event);
+    const slackTeamId = getUserTeamFromEvent(event, payload.team_id);
 
     if (event.type === "app_mention") {
-      waitUntil(handleNewAppMention(event, botUserId, tenantId, currentUserId));
+      waitUntil(handleNewAppMention(event, botUserId, tenantId, currentUserId, slackTeamId));
     }
 
     if (event.type === "assistant_thread_started") {
@@ -138,7 +154,7 @@ export async function POST(request: Request) {
       !event.subtype &&
       event.channel_type === "im"
     ) {
-      waitUntil(handleNewAssistantMessage(event, botUserId, tenantId, currentUserId));
+      waitUntil(handleNewAssistantMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
     }
 
     return new Response("Success!", { status: 200 });

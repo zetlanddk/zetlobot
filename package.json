@@ -17,6 +17,8 @@
     "@ai-sdk/mcp": "^1.0.36",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@slack/web-api": "^7.15.1",
+    "@supabase/supabase-js": "^2.105.0",
+    "@upstash/redis": "^1.37.0",
     "@vercel/functions": "^3.4.3",
     "ai": "^6.0.168",
     "zod": "^4.3.6"
