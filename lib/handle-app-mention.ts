@@ -1,5 +1,5 @@
 import { AppMentionEvent } from "@slack/web-api";
-import { client, getThread } from "./slack-utils";
+import { client, getThread, stripSlackLinks } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
@@ -50,7 +50,7 @@ export async function handleNewAppMention(
       const messages = await getThread(channel, thread_ts, botUserId);
       result = await generateResponse(messages, tenantId, context);
     } else {
-      result = await generateResponse([{ role: "user", content: event.text }], tenantId, context);
+      result = await generateResponse([{ role: "user", content: stripSlackLinks(event.text) }], tenantId, context);
     }
   } catch (error) {
     console.error("Failed to generate response:", error);
