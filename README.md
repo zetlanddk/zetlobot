@@ -1,174 +1,84 @@
-# AI SDK Slackbot
+# Zetland Slackbot
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnicoalbanese%2Fai-sdk-slackbot&env=SLACK_BOT_TOKEN,SLACK_SIGNING_SECRET,OPENAI_API_KEY,EXA_API_KEY&envDescription=API%20keys%20needed%20for%20application&envLink=https%3A%2F%2Fgithub.com%2Fnicoalbanese%2Fai-sdk-slackbot%3Ftab%3Dreadme-ov-file%234-set-environment-variables&project-name=ai-sdk-slackbot)
+Internal multi-tenant Slack assistant. Connects Slack to the [Mainframe](https://github.com/zetland/mainframe) MCP server so support staff can answer member/subscription questions and run common operations from Slack.
 
-An AI-powered chatbot for Slack powered by the [AI SDK by Vercel](https://sdk.vercel.ai/docs).
+Built on the [AI SDK](https://sdk.vercel.ai/), running [Anthropic Claude Opus 4.7](https://docs.anthropic.com/), deployed on Vercel.
 
-## Features
+## Architecture
 
-- Integrates with [Slack's API](https://api.slack.com) for easy Slack communication
-- Use any LLM with the AI SDK ([easily switch between providers](https://sdk.vercel.ai/providers/ai-sdk-providers))
-- Works both with app mentions and as an assistant in direct messages
-- Maintains conversation context within both threads and direct messages
-- Built-in tools for enhanced capabilities:
-  - Real-time weather lookup
-- Easily extensible architecture to add custom tools (e.g., knowledge search)
+A single Slack app installed in Zetland's primary workspace. Tenants (Zetland and other companies on our platform) join via Slack Connect / shared channels — channel ID is the tenant routing key.
 
-## Prerequisites
+### Request flow
 
-- [Node.js](https://nodejs.org/) 18+ installed
-- Slack workspace with admin privileges
-- [OpenAI API key](https://platform.openai.com/api-keys)
-- A server or hosting platform (e.g., [Vercel](https://vercel.com)) to deploy the bot
+1. Slack delivers an event (mention, DM, or assistant thread) to `api/events.ts` (Vercel function, 120s budget).
+2. The handler resolves the tenant via `getTenantByChannelId` in `lib/tenants.ts`. Unrecognized channels get an explicit "I'm not configured to respond in this channel" reply rather than silent drops.
+3. The Supabase auth gate (`lib/auth/gate.ts`) checks whether the Slack user has a live Supabase session in Upstash Redis. If not, the bot posts a "Sign in with Google" button; the OAuth callback at `api/auth/callback.ts` stores the access + refresh tokens and tells the user to retry their message.
+4. Once the user is authenticated, `lib/generate-response.ts` runs `generateText` against `claude-opus-4-7` with the tenant-specific system prompt (`lib/buildSystemPrompt.ts`) and the Mainframe MCP tools.
+5. Every Mainframe MCP call carries the user's own Supabase access token in the `Authorization` header (`lib/tools/index.ts`). Mainframe's audit log attributes each action to the human operator, not to a shared bot identity.
 
-## Setup
+### Tool surface
 
-### 1. Install Dependencies
+The Mainframe MCP server is the only tool source. Tool definitions live server-side in Mainframe (`app/controllers/api/v1/internal/mcp_controller.rb`) and are fetched dynamically per request — no tool list to update in this repo when Mainframe changes.
 
-```bash
-npm install
-# or
+## Tenants as code
+
+Tenant configuration lives in `lib/tenants.ts`. Each entry binds a tenant ID to its allowed Slack channel IDs, Mainframe API root, Supabase project URL, Chargebee site, and the language the bot should reply in.
+
+Per-tenant secrets follow a naming convention rather than a config file:
+
+- `<TENANT_ID_UPPERCASE>_MAINFRAME_API_KEY`
+- `<TENANT_ID_UPPERCASE>_SUPABASE_ANON_KEY`
+
+For example, the `zetland` tenant reads `ZETLAND_MAINFRAME_API_KEY` and `ZETLAND_SUPABASE_ANON_KEY` from the environment. Adding a tenant is an edit to `lib/tenants.ts` plus the matching env vars — no database, no admin UI.
+
+## Local development
+
+### Install
+
+```sh
 pnpm install
 ```
 
-### 2. Create a Slack App
+### Environment
 
-1. Go to [https://api.slack.com/apps](https://api.slack.com/apps) and click "Create New App"
-2. Choose "From scratch" and give your app a name
-3. Select your workspace
-
-### 3. Configure Slack App Settings
-
-- Go to "Basic Information"
-   - Under "App Credentials", note down your "Signing Secret". This will be an environment variable `SLACK_SIGNING_SECRET`
-- Go to "App Home"
-  - Under Show Tabs -> Messages Tab, Enable "Allow users to send Slash commands and messages from the messages tab"
-- Go to "OAuth & Permissions"
-   - Add the following [Bot Token Scopes](https://api.slack.com/scopes):
-      - `app_mentions:read`
-      - `assistant:write`
-      - `chat:write`
-      - `im:history`
-      - `im:read`
-      - `im:write`
-   - Install the app to your workspace and note down the "Bot User OAuth Token" for the environment variable `SLACK_BOT_TOKEN`
-
-- Go to "Event Subscriptions"
-   - Enable Events
-   - Set the Request URL to either
-      - your deployment URL: (e.g. `https://your-app.vercel.app/api/events`)
-      - or, for local development, use the tunnel URL from the [Local Development](./README.md#local-development) section below
-   - Under "Subscribe to bot events", add:
-      - `app_mention`
-      - `assistant_thread_started`
-      - `message:im`
-   - Save Changes
-
-> Remember to include `/api/events` in the Request URL.
-
-You may need to refresh Slack with CMD+R or CTRL+R to pick up certain changes, such as enabling the chat tab
-
-### 4. Set Environment Variables
-
-Create a `.env` file in the root of your project with the following:
+Required globals (validated by `lib/env.ts` at boot):
 
 ```
-# Slack Credentials
-SLACK_BOT_TOKEN=xoxb-your-bot-token
-SLACK_SIGNING_SECRET=your-signing-secret
-
-# OpenAI Credentials
-OPENAI_API_KEY=your-openai-api-key
-
-# Exa API Key (for web search functionality)
-EXA_API_KEY=your-exa-api-key
-
-# Channel Whitelist (optional)
-# Comma-separated list of Slack channel IDs where the bot is allowed to respond
-# If not set, the bot will respond in all channels
-ALLOWED_CHANNEL_IDS=C01234567,C89012345
+SLACK_BOT_TOKEN          # xoxb- token from the Zetland Slack app
+SLACK_SIGNING_SECRET     # Slack app signing secret
+BOT_PUBLIC_URL           # Public origin used to build the Supabase OAuth redirect
+KV_REST_API_URL          # Upstash Redis (provisioned via Vercel Marketplace)
+KV_REST_API_TOKEN
 ```
 
-Replace the placeholder values with your actual tokens.
+Plus per-tenant secrets, e.g.:
 
-> **Note**: To find a channel ID in Slack, right-click on a channel name, select "View channel details", and scroll down to find the Channel ID.
+```
+ZETLAND_MAINFRAME_API_KEY
+ZETLAND_SUPABASE_ANON_KEY
+```
 
-## Local Development
-
-Use the [Vercel CLI](https://vercel.com/docs/cli) and [untun](https://github.com/unjs/untun) to test out this project locally:
+### Run
 
 ```sh
-pnpm i -g vercel
 pnpm vercel dev --listen 3000 --yes
 ```
+
+Slack events need a public URL. Run a tunnel and point both Slack's Event Subscriptions Request URL and `BOT_PUBLIC_URL` at it (the latter so the Supabase OAuth callback resolves correctly):
 
 ```sh
 npx untun@latest tunnel http://localhost:3000
 ```
 
-Make sure to modify the [subscription URL](./README.md/#enable-slack-events) to the `untun` URL.
+Slack Request URL: `<tunnel>/api/events`.
 
-> Note: you may encounter issues locally with `waitUntil`. This is being investigated.
+### Tests
 
-## Production Deployment
+```sh
+pnpm test         # one-shot
+pnpm test:watch   # watch mode
+```
 
-### Deploying to Vercel
+## Deployment
 
-1. Push your code to a GitHub repository
-
-2. Deploy to [Vercel](https://vercel.com):
-
-   - Go to vercel.com
-   - Create New Project
-   - Import your GitHub repository
-
-3. Add your environment variables in the Vercel project settings:
-
-   - `SLACK_BOT_TOKEN`
-   - `SLACK_SIGNING_SECRET`
-   - `OPENAI_API_KEY`
-   - `EXA_API_KEY`
-   - `ALLOWED_CHANNEL_IDS` (optional - comma-separated channel IDs to whitelist)
-
-4. After deployment, Vercel will provide you with a production URL
-
-5. Update your Slack App configuration:
-   - Go to your [Slack App settings](https://api.slack.com/apps)
-   - Select your app
-
-   - Go to "Event Subscriptions"
-      - Enable Events
-      - Set the Request URL to: `https://your-app.vercel.app/api/events`
-   - Save Changes
-
-## Usage
-
-The bot will respond to:
-
-1. Direct messages - Send a DM to your bot
-2. Mentions - Mention your bot in a channel using `@YourBotName`
-
-The bot maintains context within both threads and direct messages, so it can follow along with the conversation.
-
-### Available Tools
-
-1. **Weather Tool**: The bot can fetch real-time weather information for any location.
-
-   - Example: "What's the weather like in London right now?"
-
-### Extending with New Tools
-
-The chatbot is built with an extensible architecture using the [AI SDK's tool system](https://sdk.vercel.ai/docs/ai-sdk-core/tools-and-tool-calling). You can easily add new tools such as:
-
-- Knowledge base search
-- Database queries
-- Custom API integrations
-- Company documentation search
-
-To add a new tool, extend the tools object in the `lib/ai.ts` file following the existing pattern.
-
-You can also disable any of the existing tools by removing the tool in the `lib/ai.ts` file.
-
-## License
-
-MIT
+Deployed to Vercel. Production env vars (globals + each tenant's `<TENANT>_*` secrets) live in the Vercel project settings; pushing to `main` triggers a deploy.
