@@ -1,17 +1,13 @@
 {
-  "name": "ai-sdk-slack-chatbot",
+  "name": "zetlobot",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Zetland Slackbot — internal multi-tenant Slack assistant connecting Slack to the Mainframe MCP server.",
+  "private": true,
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",
     "@ai-sdk/mcp": "^1.0.36",
