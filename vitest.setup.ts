@@ -9,7 +9,11 @@ config({ path: resolve(__dirname, ".env.local") });
 const testDefaults: Record<string, string> = {
   SLACK_BOT_TOKEN: "xoxb-test",
   SLACK_SIGNING_SECRET: "test-signing-secret",
-  PAGER_DUTY_API_KEY: "test-pagerduty-key",
+  BOT_PUBLIC_URL: "https://bot.test",
+  KV_REST_API_URL: "https://kv.test",
+  KV_REST_API_TOKEN: "kv-test-token",
+  ZETLAND_MAINFRAME_API_KEY: "test-mainframe-key",
+  ZETLAND_SUPABASE_ANON_KEY: "test-anon-key",
 };
 
 for (const [key, value] of Object.entries(testDefaults)) {
