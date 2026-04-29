@@ -4,6 +4,7 @@ import { MCPTransportError } from "../tools";
 export type GateResult<T> =
   | { kind: "ok"; result: T }
   | { kind: "needs_auth"; signInUrl: string }
+  | { kind: "forbidden" }
   | { kind: "error"; reason: string };
 
 function logGate(
@@ -26,13 +27,9 @@ function logGate(
   );
 }
 
-// Runs `doWork` with a fresh Supabase access token. If `doWork` throws
-// MCPTransportError, force-refreshes the session once and retries. Three
-// outcomes: ok (work succeeded), needs_auth (post sign-in link),
-// error (transport keeps failing — could be a revoked editor role, a
-// transient mainframe outage, or a network blip; the user gets a generic
-// error and the session record stays in Redis so we don't loop them
-// through OAuth).
+// We force-refresh on any MCPTransportError including 403, so a user just
+// added to the allowlist isn't stuck behind a stale cached access token
+// until it expires.
 export async function withSupabaseGate<T>(
   input: SessionInput,
   doWork: (accessToken: string) => Promise<T>,
@@ -87,6 +84,7 @@ export async function withSupabaseGate<T>(
       return { kind: "ok", result };
     } catch (err2) {
       if (!(err2 instanceof MCPTransportError)) throw err2;
+
       console.log(
         JSON.stringify({
           event: "mcp_transport_error",
@@ -98,6 +96,12 @@ export async function withSupabaseGate<T>(
           message: err2.message,
         }),
       );
+
+      if (err2.status === 403) {
+        logGate(input, "forbidden", startedAt, { supabaseUserId: refresh.supabaseUserId });
+        return { kind: "forbidden" };
+      }
+
       logGate(input, "error", startedAt, {
         reason: "transport_failed_after_refresh",
         supabaseUserId: refresh.supabaseUserId,

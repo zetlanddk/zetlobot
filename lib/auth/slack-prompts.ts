@@ -34,3 +34,12 @@ export async function postSignInPrompt(target: EphemeralTarget, signInUrl: strin
     ],
   });
 }
+
+export async function postForbiddenPrompt(target: EphemeralTarget): Promise<void> {
+  await client.chat.postEphemeral({
+    channel: target.channel,
+    user: target.user,
+    ...(target.threadTs ? { thread_ts: target.threadTs } : {}),
+    text: "You're signed in, but your account isn't on this assistant's allowlist. Ask an admin to grant you access.",
+  });
+}

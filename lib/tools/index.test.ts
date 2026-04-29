@@ -93,3 +93,21 @@ describe("getToolsForTenant", () => {
     );
   });
 });
+
+describe("MCPTransportError", () => {
+  it("extracts HTTP status from a wrapped @ai-sdk/mcp transport error message", () => {
+    const err = new MCPTransportError(
+      new Error("MCP HTTP Transport Error: POSTing to endpoint (HTTP 403): forbidden"),
+    );
+    expect(err.status).toBe(403);
+  });
+
+  it("leaves status undefined when the cause message has no recognizable HTTP status", () => {
+    const err = new MCPTransportError(new Error("connection refused"));
+    expect(err.status).toBeUndefined();
+  });
+
+  it("leaves status undefined when there is no cause at all", () => {
+    expect(new MCPTransportError().status).toBeUndefined();
+  });
+});

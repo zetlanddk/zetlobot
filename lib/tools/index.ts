@@ -20,17 +20,23 @@ export type ToolHandle = {
   close: () => Promise<void>;
 };
 
-// Wraps any throw from createMCPClient or client.tools(). The caller (the
-// auth gate) refreshes the Supabase token once and retries; on a second
-// failure, propagates as a generic error. We can't distinguish 401 from
-// other transport failures because @ai-sdk/mcp surfaces them as a plain
-// Error with no structured status. The cost of refreshing on a transient
-// non-auth failure is one extra Supabase call — cheap.
+// @ai-sdk/mcp's HTTP transport stuffs the response status into the error
+// message (`... (HTTP NNN): ...`) without exposing it as a structured field.
+// Tight enough to skip mainframe error bodies that don't use parens; loose
+// enough to survive small upstream wording changes. If it ever stops
+// matching, status is undefined and the gate falls through to today's
+// 401/transient-error handling rather than misclassifying.
+const HTTP_STATUS_FROM_MESSAGE = /\(HTTP (\d{3})\)/;
+
 export class MCPTransportError extends Error {
   readonly code = "MCP_TRANSPORT_ERROR" as const;
+  readonly status?: number;
   constructor(cause?: unknown) {
-    super(cause instanceof Error ? cause.message : "MCP transport error", { cause });
+    const message = cause instanceof Error ? cause.message : "MCP transport error";
+    super(message, { cause });
     this.name = "MCPTransportError";
+    const match = message.match(HTTP_STATUS_FROM_MESSAGE);
+    if (match) this.status = Number(match[1]);
   }
 }
 

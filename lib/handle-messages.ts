@@ -11,7 +11,7 @@ import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
 import { withSupabaseGate } from "./auth/gate";
-import { postSignInPrompt } from "./auth/slack-prompts";
+import { postForbiddenPrompt, postSignInPrompt } from "./auth/slack-prompts";
 
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
@@ -91,6 +91,11 @@ export async function handleNewAssistantMessage(
       { channel, user: currentUserId, threadTs: thread_ts },
       gate.signInUrl,
     );
+    return;
+  }
+
+  if (gate.kind === "forbidden") {
+    await postForbiddenPrompt({ channel, user: currentUserId, threadTs: thread_ts });
     return;
   }
 
