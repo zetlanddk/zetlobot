@@ -7,7 +7,7 @@ import { waitUntil } from "@vercel/functions";
 import { handleNewAppMention } from "../lib/handle-app-mention";
 import { handleChannelMessage } from "../lib/handle-channel-message";
 import { verifyRequest, getBotId, client } from "../lib/slack-utils";
-import { getTenantByChannelId } from "../lib/tenants";
+import { getTenantByChannelId, isAutoRespondEnabled } from "../lib/tenants";
 
 /**
  * Extract channel ID from various Slack event types
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
         waitUntil(handleNewAssistantMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
       } else if (
         (event.channel_type === "channel" || event.channel_type === "group") &&
-        process.env.AUTO_RESPOND === "true"
+        isAutoRespondEnabled(tenantId)
       ) {
         waitUntil(handleChannelMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
       }

@@ -30,6 +30,11 @@ export function getTenantById(tenantId: TenantId): TenantConfig | null {
   return tenants.find((t) => t.id === tenantId) ?? null;
 }
 
+export function isAutoRespondEnabled(tenantId: TenantId): boolean {
+  const prefix = tenantId.toUpperCase();
+  return process.env[`${prefix}_AUTO_RESPOND`] === "true";
+}
+
 export function getTenantSecrets(tenantId: TenantId): TenantSecrets {
   const prefix = tenantId.toUpperCase();
   const mainframeApiKey = process.env[`${prefix}_MAINFRAME_API_KEY`];
