@@ -29,13 +29,9 @@ export const generateResponse = async (
     userInfo = await getUserInfo(context.currentUserId);
   }
 
-  const userContext: UserContext | undefined =
-    userInfo?.email || context?.supabaseAccessToken
-      ? {
-          email: userInfo?.email,
-          supabaseAccessToken: context?.supabaseAccessToken,
-        }
-      : undefined;
+  const userContext: UserContext | undefined = context?.supabaseAccessToken
+    ? { supabaseAccessToken: context.supabaseAccessToken }
+    : undefined;
 
   // Initial-handshake 401s propagate as MCPUnauthorizedError; handlers catch
   // them and decide whether to forceRefresh + retry or post a sign-in link.

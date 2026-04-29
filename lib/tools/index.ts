@@ -9,7 +9,6 @@ export type MCPToolConfig = {
 };
 
 export type UserContext = {
-  email?: string;
   supabaseAccessToken?: string;
 };
 
@@ -39,13 +38,7 @@ function isHttp401(err: unknown): boolean {
 function buildMainframeConfig(tenant: TenantConfig, secrets: TenantSecrets, userContext?: UserContext): MCPToolConfig {
   const headers: Record<string, string> = {
     "X-Internal-Api-Key": secrets.mainframeApiKey,
-    "X-Slack-Bot-Token": env.SLACK_BOT_TOKEN,
   };
-
-  if (userContext?.email) {
-    // TODO: drop once Mainframe trusts the JWT email claim.
-    headers["X-User-Email"] = userContext.email;
-  }
 
   if (userContext?.supabaseAccessToken) {
     headers["Authorization"] = `Bearer ${userContext.supabaseAccessToken}`;

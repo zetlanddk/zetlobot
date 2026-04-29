@@ -49,9 +49,14 @@ describe("getToolsForTenant", () => {
   });
 
   it("omits Authorization when supabaseAccessToken is absent", async () => {
-    await getToolsForTenant("zetland", { email: "u@example.com" });
+    await getToolsForTenant("zetland");
     expect(mockState.capturedHeaders?.["Authorization"]).toBeUndefined();
-    expect(mockState.capturedHeaders?.["X-User-Email"]).toBe("u@example.com");
+  });
+
+  it("does not send X-Slack-Bot-Token or X-User-Email", async () => {
+    await getToolsForTenant("zetland", { supabaseAccessToken: "tok-abc" });
+    expect(mockState.capturedHeaders?.["X-Slack-Bot-Token"]).toBeUndefined();
+    expect(mockState.capturedHeaders?.["X-User-Email"]).toBeUndefined();
   });
 
   it("returns a close callback that invokes client.close()", async () => {
