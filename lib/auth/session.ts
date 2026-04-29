@@ -19,11 +19,10 @@ export type SessionInput = {
   slackUserId: string;
   channelId: string;
   threadHint: string | null;
-  loginHintEmail?: string;
 };
 
 export type SessionResult =
-  | { kind: "ok"; accessToken: string }
+  | { kind: "ok"; accessToken: string; supabaseUserId: string }
   | { kind: "needs_auth"; signInUrl: string }
   | { kind: "error"; reason: string };
 
@@ -50,7 +49,6 @@ async function startOAuthAndReturnNeedsAuth(input: SessionInput): Promise<Sessio
       slackUserId: input.slackUserId,
       channelId: input.channelId,
       threadHint: input.threadHint,
-      loginHintEmail: input.loginHintEmail,
     };
     const { signInUrl } = await beginOAuth(beginParams);
     return { kind: "needs_auth", signInUrl };
@@ -79,7 +77,11 @@ async function refreshAndPersist(
       current.expiresAt - Date.now() > REFRESH_SKEW_MS
     ) {
       logRefresh(input, "rotated");
-      return { kind: "ok", accessToken: current.accessToken };
+      return {
+        kind: "ok",
+        accessToken: current.accessToken,
+        supabaseUserId: current.supabaseUserId,
+      };
     }
     logRefresh(input, "failed");
     await deleteSession(input.tenantId, input.slackTeamId, input.slackUserId);
@@ -95,7 +97,11 @@ async function refreshAndPersist(
   });
   logRefresh(input, rotated ? "rotated" : "success");
 
-  return { kind: "ok", accessToken: refreshed.accessToken };
+  return {
+    kind: "ok",
+    accessToken: refreshed.accessToken,
+    supabaseUserId: refreshed.supabaseUserId,
+  };
 }
 
 export async function ensureSupabaseSession(input: SessionInput): Promise<SessionResult> {
@@ -108,7 +114,11 @@ export async function ensureSupabaseSession(input: SessionInput): Promise<Sessio
     return refreshAndPersist(input, existing);
   }
 
-  return { kind: "ok", accessToken: existing.accessToken };
+  return {
+    kind: "ok",
+    accessToken: existing.accessToken,
+    supabaseUserId: existing.supabaseUserId,
+  };
 }
 
 // Skips the cache and forces a refresh against Supabase. Used after a 401 from

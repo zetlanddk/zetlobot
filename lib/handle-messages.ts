@@ -5,14 +5,13 @@ import type {
 import {
   client,
   getThread,
-  getUserInfo,
   createAssistantStatusUpdater,
 } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
 import { withSupabaseGate } from "./auth/gate";
-import { postSignInPrompt, postUnauthorizedPrompt } from "./auth/slack-prompts";
+import { postSignInPrompt } from "./auth/slack-prompts";
 
 export async function assistantThreadMessage(
   event: AssistantThreadStartedEvent,
@@ -56,14 +55,12 @@ export async function handleNewAssistantMessage(
   const updateStatus = createAssistantStatusUpdater(channel, thread_ts);
   await updateStatus(randomThinkingEmoji());
 
-  const userInfo = await getUserInfo(currentUserId);
   const sessionInput = {
     tenantId,
     slackTeamId,
     slackUserId: currentUserId,
     channelId: channel,
     threadHint: thread_ts,
-    loginHintEmail: userInfo?.email,
   };
 
   const gate = await withSupabaseGate(sessionInput, async (accessToken) => {
@@ -93,14 +90,6 @@ export async function handleNewAssistantMessage(
     await postSignInPrompt(
       { channel, user: currentUserId, threadTs: thread_ts },
       gate.signInUrl,
-    );
-    return;
-  }
-
-  if (gate.kind === "unauthorized") {
-    await postUnauthorizedPrompt(
-      { channel, user: currentUserId, threadTs: thread_ts },
-      userInfo?.email ?? null,
     );
     return;
   }

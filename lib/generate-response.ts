@@ -22,23 +22,17 @@ export const generateResponse = async (
     throw new Error(`Unknown tenant: ${tenantId}`);
   }
 
-  // getUserInfo is memoized inside slack-utils, so calling it again here when
-  // the handler already did is a cache hit, not a fresh API call.
   let userInfo: UserInfo | undefined;
   if (context?.currentUserId) {
     userInfo = await getUserInfo(context.currentUserId);
   }
 
-  const userContext: UserContext | undefined =
-    userInfo?.email || context?.supabaseAccessToken
-      ? {
-          email: userInfo?.email,
-          supabaseAccessToken: context?.supabaseAccessToken,
-        }
-      : undefined;
+  const userContext: UserContext | undefined = context?.supabaseAccessToken
+    ? { supabaseAccessToken: context.supabaseAccessToken }
+    : undefined;
 
-  // Initial-handshake 401s propagate as MCPUnauthorizedError; handlers catch
-  // them and decide whether to forceRefresh + retry or post a sign-in link.
+  // Initial-handshake failures propagate as MCPTransportError; the auth gate
+  // catches them and decides whether to forceRefresh + retry or surface error.
   const handle = await getToolsForTenant(tenantId, userContext);
 
   try {
@@ -48,14 +42,13 @@ export const generateResponse = async (
     if (userInfo) {
       localTools.get_current_user = tool({
         description:
-          "Get the name and email of the current user who is sending the message. " +
+          "Get the name of the current user who is sending the message. " +
           "Use this when the user refers to themselves with 'me', 'I', 'my', etc. " +
           "and you need to know who they are.",
         inputSchema: z.object({}),
         execute: async () => {
           return {
             name: userInfo.displayName,
-            email: userInfo.email ?? null,
           };
         },
       });

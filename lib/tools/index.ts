@@ -9,7 +9,6 @@ export type MCPToolConfig = {
 };
 
 export type UserContext = {
-  email?: string;
   supabaseAccessToken?: string;
 };
 
@@ -21,31 +20,24 @@ export type ToolHandle = {
   close: () => Promise<void>;
 };
 
-export class MCPUnauthorizedError extends Error {
-  readonly code = "MCP_UNAUTHORIZED" as const;
+// Wraps any throw from createMCPClient or client.tools(). The caller (the
+// auth gate) refreshes the Supabase token once and retries; on a second
+// failure, propagates as a generic error. We can't distinguish 401 from
+// other transport failures because @ai-sdk/mcp surfaces them as a plain
+// Error with no structured status. The cost of refreshing on a transient
+// non-auth failure is one extra Supabase call — cheap.
+export class MCPTransportError extends Error {
+  readonly code = "MCP_TRANSPORT_ERROR" as const;
   constructor(cause?: unknown) {
-    super("MCP server returned 401", { cause });
-    this.name = "MCPUnauthorizedError";
+    super(cause instanceof Error ? cause.message : "MCP transport error", { cause });
+    this.name = "MCPTransportError";
   }
-}
-
-// Substring match on the SDK error message; @ai-sdk/mcp's MCPClientError is
-// internal. Pinned by the unit test below — replace with an instanceof check
-// when typed transport errors land in the public API.
-function isHttp401(err: unknown): boolean {
-  return err instanceof Error && err.message.includes("HTTP 401");
 }
 
 function buildMainframeConfig(tenant: TenantConfig, secrets: TenantSecrets, userContext?: UserContext): MCPToolConfig {
   const headers: Record<string, string> = {
     "X-Internal-Api-Key": secrets.mainframeApiKey,
-    "X-Slack-Bot-Token": env.SLACK_BOT_TOKEN,
   };
-
-  if (userContext?.email) {
-    // TODO: drop once Mainframe trusts the JWT email claim.
-    headers["X-User-Email"] = userContext.email;
-  }
 
   if (userContext?.supabaseAccessToken) {
     headers["Authorization"] = `Bearer ${userContext.supabaseAccessToken}`;
@@ -71,8 +63,7 @@ async function initializeClient(config: MCPToolConfig): Promise<ToolHandle> {
       },
     });
   } catch (err) {
-    if (isHttp401(err)) throw new MCPUnauthorizedError(err);
-    throw err;
+    throw new MCPTransportError(err);
   }
 
   try {
@@ -90,8 +81,7 @@ async function initializeClient(config: MCPToolConfig): Promise<ToolHandle> {
     };
   } catch (err) {
     await client.close().catch(() => {});
-    if (isHttp401(err)) throw new MCPUnauthorizedError(err);
-    throw err;
+    throw new MCPTransportError(err);
   }
 }
 
