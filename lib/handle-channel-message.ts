@@ -5,7 +5,7 @@ import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
 import { shouldRespond } from "./should-respond";
 import { withSupabaseGate } from "./auth/gate";
-import { postSignInPrompt } from "./auth/slack-prompts";
+import { postSignInPrompt, postForbiddenPrompt } from "./auth/slack-prompts";
 
 /**
  * Handles all messages in channels when AUTO_RESPOND is enabled.
@@ -78,6 +78,14 @@ export async function handleChannelMessage(
       { channel, user: currentUserId, threadTs },
       gate.signInUrl,
     );
+    return;
+  }
+
+  if (gate.kind === "forbidden") {
+    if (updater) {
+      await updater("I left you a private note.");
+    }
+    await postForbiddenPrompt({ channel, user: currentUserId, threadTs });
     return;
   }
 
