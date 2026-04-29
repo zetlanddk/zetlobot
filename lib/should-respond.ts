@@ -8,9 +8,10 @@ const CLASSIFICATION_PROMPT = `You are a classification model for an internal te
 Your task: Decide whether the following Slack channel message is something the bot should respond to.
 
 The bot CAN help with:
-- User lookups and account issues
-- Subscriptions and memberships
-- Payments and billing (ChargeBee, MobilePay)
+- User and account lookups
+- Subscriptions, memberships, and payment status
+- Gift codes, impersonation links, account merges, email changes, GDPR deletion
+- Company lookups
 - Technical support questions related to internal systems
 - Questions directed at the bot
 
