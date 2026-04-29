@@ -27,7 +27,7 @@ vi.mock("@ai-sdk/mcp", () => {
   };
 });
 
-import { getToolsForTenant, MCPUnauthorizedError } from "./index";
+import { getToolsForTenant, MCPTransportError } from "./index";
 
 beforeEach(() => {
   mockState.capturedHeaders = null;
@@ -66,31 +66,30 @@ describe("getToolsForTenant", () => {
     expect(mockState.closeCalled).toBe(1);
   });
 
-  it("throws MCPUnauthorizedError on 401 during client.tools()", async () => {
+  it("wraps 401 thrown by client.tools() as MCPTransportError", async () => {
     mockState.toolsError = new Error(
       "MCP HTTP Transport Error: POSTing to endpoint (HTTP 401): unauthorized",
     );
     await expect(
       getToolsForTenant("zetland", { supabaseAccessToken: "stale" }),
-    ).rejects.toBeInstanceOf(MCPUnauthorizedError);
+    ).rejects.toBeInstanceOf(MCPTransportError);
     // The client should still be closed even though tools() threw.
     expect(mockState.closeCalled).toBe(1);
   });
 
-  it("throws MCPUnauthorizedError on 401 during createMCPClient", async () => {
+  it("wraps 401 thrown by createMCPClient as MCPTransportError", async () => {
     mockState.createError = new Error(
       "MCP HTTP Transport Error: POSTing to endpoint (HTTP 401): unauthorized",
     );
     await expect(
       getToolsForTenant("zetland", { supabaseAccessToken: "stale" }),
-    ).rejects.toBeInstanceOf(MCPUnauthorizedError);
+    ).rejects.toBeInstanceOf(MCPTransportError);
   });
 
-  it("propagates non-401 errors unchanged", async () => {
+  it("wraps non-401 transport errors as MCPTransportError too", async () => {
     mockState.toolsError = new Error("connection refused");
-    await expect(getToolsForTenant("zetland")).rejects.toThrow("connection refused");
-    await expect(getToolsForTenant("zetland")).rejects.not.toBeInstanceOf(
-      MCPUnauthorizedError,
+    await expect(getToolsForTenant("zetland")).rejects.toBeInstanceOf(
+      MCPTransportError,
     );
   });
 });

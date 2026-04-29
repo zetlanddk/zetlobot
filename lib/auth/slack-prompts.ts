@@ -34,16 +34,3 @@ export async function postSignInPrompt(target: EphemeralTarget, signInUrl: strin
     ],
   });
 }
-
-export async function postUnauthorizedPrompt(
-  target: EphemeralTarget,
-  email: string | null,
-): Promise<void> {
-  const who = email ? ` as \`${email}\`` : "";
-  await client.chat.postEphemeral({
-    channel: target.channel,
-    user: target.user,
-    ...(target.threadTs ? { thread_ts: target.threadTs } : {}),
-    text: `You're signed in${who}, but this account isn't authorized for this feature. Contact a workspace admin.`,
-  });
-}

@@ -1,10 +1,9 @@
 import { ensureSupabaseSession, forceRefresh, type SessionInput } from "./session";
-import { MCPUnauthorizedError } from "../tools";
+import { MCPTransportError } from "../tools";
 
 export type GateResult<T> =
   | { kind: "ok"; result: T }
   | { kind: "needs_auth"; signInUrl: string }
-  | { kind: "unauthorized" }
   | { kind: "error"; reason: string };
 
 function logGate(
@@ -27,10 +26,12 @@ function logGate(
 }
 
 // Runs `doWork` with a fresh Supabase access token. If `doWork` throws
-// MCPUnauthorizedError, force-refreshes the session once and retries. The four
-// outcomes are: ok (work succeeded), needs_auth (post sign-in link),
-// unauthorized (signed in but lacks editor role — different UX, no loop),
-// error (everything else).
+// MCPTransportError, force-refreshes the session once and retries. Three
+// outcomes: ok (work succeeded), needs_auth (post sign-in link),
+// error (transport keeps failing — could be a revoked editor role, a
+// transient mainframe outage, or a network blip; the user gets a generic
+// error and the session record stays in Redis so we don't loop them
+// through OAuth).
 export async function withSupabaseGate<T>(
   input: SessionInput,
   doWork: (accessToken: string) => Promise<T>,
@@ -52,15 +53,16 @@ export async function withSupabaseGate<T>(
     logGate(input, "ok", startedAt);
     return { kind: "ok", result };
   } catch (err) {
-    if (!(err instanceof MCPUnauthorizedError)) throw err;
+    if (!(err instanceof MCPTransportError)) throw err;
 
     console.log(
       JSON.stringify({
-        event: "mcp_unauthorized",
+        event: "mcp_transport_error",
         phase: "first_attempt",
         tenantId: input.tenantId,
         slackTeamId: input.slackTeamId,
         slackUserId: input.slackUserId,
+        message: err.message,
       }),
     );
 
@@ -79,18 +81,19 @@ export async function withSupabaseGate<T>(
       logGate(input, "ok", startedAt, "ok_after_refresh");
       return { kind: "ok", result };
     } catch (err2) {
-      if (!(err2 instanceof MCPUnauthorizedError)) throw err2;
+      if (!(err2 instanceof MCPTransportError)) throw err2;
       console.log(
         JSON.stringify({
-          event: "mcp_unauthorized",
+          event: "mcp_transport_error",
           phase: "after_refresh",
           tenantId: input.tenantId,
           slackTeamId: input.slackTeamId,
           slackUserId: input.slackUserId,
+          message: err2.message,
         }),
       );
-      logGate(input, "unauthorized", startedAt, "fresh_jwt_rejected_by_mainframe");
-      return { kind: "unauthorized" };
+      logGate(input, "error", startedAt, "transport_failed_after_refresh");
+      return { kind: "error", reason: err2.message };
     }
   }
 }

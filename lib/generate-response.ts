@@ -33,8 +33,8 @@ export const generateResponse = async (
     ? { supabaseAccessToken: context.supabaseAccessToken }
     : undefined;
 
-  // Initial-handshake 401s propagate as MCPUnauthorizedError; handlers catch
-  // them and decide whether to forceRefresh + retry or post a sign-in link.
+  // Initial-handshake failures propagate as MCPTransportError; the auth gate
+  // catches them and decides whether to forceRefresh + retry or surface error.
   const handle = await getToolsForTenant(tenantId, userContext);
 
   try {

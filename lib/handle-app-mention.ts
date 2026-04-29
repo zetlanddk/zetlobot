@@ -4,7 +4,7 @@ import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
 import { withSupabaseGate } from "./auth/gate";
-import { postSignInPrompt, postUnauthorizedPrompt } from "./auth/slack-prompts";
+import { postSignInPrompt } from "./auth/slack-prompts";
 
 const createMessageUpdater = async (initialStatus: string, event: AppMentionEvent) => {
   const initialMessage = await client.chat.postMessage({
@@ -76,15 +76,6 @@ export async function handleNewAppMention(
     await postSignInPrompt(
       { channel, user: currentUserId, threadTs: ephemeralThread },
       gate.signInUrl,
-    );
-    return;
-  }
-
-  if (gate.kind === "unauthorized") {
-    await updateMessage("Your account isn't authorized for this feature.");
-    await postUnauthorizedPrompt(
-      { channel, user: currentUserId, threadTs: ephemeralThread },
-      userInfo?.email ?? null,
     );
     return;
   }
