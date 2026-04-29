@@ -22,8 +22,6 @@ export const generateResponse = async (
     throw new Error(`Unknown tenant: ${tenantId}`);
   }
 
-  // getUserInfo is memoized inside slack-utils, so calling it again here when
-  // the handler already did is a cache hit, not a fresh API call.
   let userInfo: UserInfo | undefined;
   if (context?.currentUserId) {
     userInfo = await getUserInfo(context.currentUserId);

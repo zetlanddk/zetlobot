@@ -5,7 +5,6 @@ import type {
 import {
   client,
   getThread,
-  getUserInfo,
   createAssistantStatusUpdater,
 } from "./slack-utils";
 import { generateResponse } from "./generate-response";
@@ -56,7 +55,6 @@ export async function handleNewAssistantMessage(
   const updateStatus = createAssistantStatusUpdater(channel, thread_ts);
   await updateStatus(randomThinkingEmoji());
 
-  const userInfo = await getUserInfo(currentUserId);
   const sessionInput = {
     tenantId,
     slackTeamId,

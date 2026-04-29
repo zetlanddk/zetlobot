@@ -1,5 +1,5 @@
 import { AppMentionEvent } from "@slack/web-api";
-import { client, getThread, getUserInfo, stripSlackLinks } from "./slack-utils";
+import { client, getThread, stripSlackLinks } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
@@ -44,7 +44,6 @@ export async function handleNewAppMention(
 
   const updateMessage = await createMessageUpdater(randomThinkingEmoji(), event);
 
-  const userInfo = await getUserInfo(currentUserId);
   const ephemeralThread = thread_ts ?? event.ts;
   const sessionInput = {
     tenantId,
