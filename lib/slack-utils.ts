@@ -98,13 +98,9 @@ export async function getThread(
       const isBot = !!message.bot_id;
       if (!message.text) return null;
 
-      // For app mentions, remove the mention prefix
-      // For IM messages, keep the full text
       let content = message.text;
-      if (!isBot && content.includes(`<@${botUserId}>`)) {
-        content = content.replace(`<@${botUserId}> `, "");
-      }
       if (!isBot) {
+        content = stripBotMention(content, botUserId);
         content = stripSlackLinks(content);
       }
 
@@ -145,6 +141,10 @@ export async function getUserInfo(userId: string): Promise<UserInfo> {
   }
 }
 
+// Best-effort check — uses Slack's per-call max of 200 replies. For threads
+// longer than that the bot's earliest message could fall outside the window
+// and we'd misclassify the thread as bot-free; the classifier picks up the
+// slack on the next message.
 export async function isBotInThread(
   channelId: string,
   threadTs: string,
@@ -153,7 +153,7 @@ export async function isBotInThread(
   const { messages } = await client.conversations.replies({
     channel: channelId,
     ts: threadTs,
-    limit: 50,
+    limit: 200,
   });
   return messages?.some((m) => m.user === botUserId) ?? false;
 }
