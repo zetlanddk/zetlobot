@@ -18,22 +18,42 @@ The bot CAN help with:
 The bot should NOT respond to:
 - General chat and smalltalk between colleagues
 - Messages clearly directed at other people
-- Internal discussions about editorial content, articles, or journalism
 - Questions unrelated to technical support or user management
 - Simple confirmations, thank-you messages, emojis, or reactions
 - Jokes, memes, or casual communication
 
 Respond ONLY with "YES" or "NO".`;
 
+function logDecision(
+  channelId: string,
+  decision: "yes" | "no",
+  startedAt: number,
+  opts: { reason: "thread_bypass" | "empty_content" | "classifier" | "classifier_error"; classifierOutput?: string },
+) {
+  console.log(
+    JSON.stringify({
+      event: "auto_respond_decision",
+      channelId,
+      decision,
+      latencyMs: Date.now() - startedAt,
+      reason: opts.reason,
+      ...(opts.classifierOutput !== undefined ? { classifierOutput: opts.classifierOutput } : {}),
+    }),
+  );
+}
+
 export async function shouldRespond(
   event: GenericMessageEvent,
   botUserId: string,
 ): Promise<boolean> {
+  const startedAt = Date.now();
+
   // If we're in a thread where the bot is already participating, always respond
   if (event.thread_ts) {
     try {
       const botInThread = await isBotInThread(event.channel, event.thread_ts, botUserId);
       if (botInThread) {
+        logDecision(event.channel, "yes", startedAt, { reason: "thread_bypass" });
         return true;
       }
     } catch (error) {
@@ -45,6 +65,7 @@ export async function shouldRespond(
   const content = stripBotMention(event.text ?? "", botUserId);
 
   if (!content) {
+    logDecision(event.channel, "no", startedAt, { reason: "empty_content" });
     return false;
   }
 
@@ -57,9 +78,15 @@ export async function shouldRespond(
       maxOutputTokens: 5,
     });
 
-    return text.trim().toUpperCase().startsWith("YES");
+    const decision = text.trim().toUpperCase().startsWith("YES") ? "yes" : "no";
+    logDecision(event.channel, decision, startedAt, {
+      reason: "classifier",
+      classifierOutput: text,
+    });
+    return decision === "yes";
   } catch (error) {
     console.error("Failed to classify message, defaulting to not respond:", error);
+    logDecision(event.channel, "no", startedAt, { reason: "classifier_error" });
     return false;
   }
 }
