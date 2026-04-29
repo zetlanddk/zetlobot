@@ -1,10 +1,16 @@
+export type SystemPromptShortcut = { trigger: string; action: string };
+
 export type SystemPromptConfig = {
   chargebeeSite: string;
   language: string;
+  shortcuts: readonly SystemPromptShortcut[];
 };
 
 export const buildSystemPrompt = (config: SystemPromptConfig) => {
   const today = new Date().toISOString().split("T")[0];
+  const shortcutLines = config.shortcuts
+    .map((s) => `- "${s.trigger}" → ${s.action}`)
+    .join("\n");
   return `You are an internal technical support AI assistant. Always respond in ${config.language} unless the user explicitly writes in another language. Use relevant emojis to increase clarity and friendliness.
 
 Resolve internal support requests quickly, accurately, and securely: user information, payment/membership details.
@@ -38,12 +44,5 @@ TIPS:
 
 SHORTCUT COMMANDS:
 Users may type abbreviated commands from a previous bot. Recognize these patterns and perform the corresponding action. Treat them as normal requests.
-- "member <email/id>" → Look up the user's profile and subscription info.
-- "i am <email/id>" → Generate an impersonation magic link. Warn to log out afterwards.
-- "make <count> <paid/complementary> gift codes for <count> months to <description>" → Create gift codes. Max 50 at a time. Confirm before creating.
-- "<email> wants to log in with email" → Merge duplicate user accounts. Confirm before executing.
-- "change email for <email/id> to <new-email>" → Change the user's email address. Confirm before executing.
-- "perform GDPR deletion for <id>" → Perform GDPR deletion. Always confirm first. May fail if user has active subscriptions.
-- "<email> is a new employee" → Grant employee/staff access. Confirm before executing.
-- "virksomhed <UUID>" → Look up company details: name, administrators, employees, and ChargeBee link.`;
+${shortcutLines}`;
 };
