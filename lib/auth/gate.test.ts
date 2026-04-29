@@ -156,12 +156,7 @@ describe("withSupabaseGate", () => {
     });
   });
 
-  // The key behavioural change of this branch: a fresh JWT that's still
-  // rejected by Mainframe (e.g. editor role revoked) used to land in a
-  // dedicated "unauthorized" GateResult variant. Now it lands in the
-  // generic "error" branch — the user gets a generic auth-error message
-  // and there's no sign-in loop.
-  it("returns error (not unauthorized) when retry also throws MCPTransportError", async () => {
+  it("returns error when retry also throws MCPTransportError with 401", async () => {
     sessionMock.ensureResult = {
       kind: "ok",
       accessToken: "stale-jwt",
@@ -185,6 +180,66 @@ describe("withSupabaseGate", () => {
     const log = gateLogs().find((l) => l.decision === "error");
     expect(log?.reason).toBe("transport_failed_after_refresh");
     expect(log?.supabaseUserId).toBe("supa-u");
+  });
+
+  it("force-refreshes on first-attempt 403 and returns ok if the retry succeeds", async () => {
+    sessionMock.ensureResult = {
+      kind: "ok",
+      accessToken: "pre-grant-jwt",
+      supabaseUserId: "supa-u",
+    };
+    sessionMock.forceRefreshResult = {
+      kind: "ok",
+      accessToken: "post-grant-jwt",
+      supabaseUserId: "supa-u",
+    };
+
+    let attempts = 0;
+    const result = await withSupabaseGate(input, async (token) => {
+      attempts += 1;
+      if (attempts === 1) {
+        expect(token).toBe("pre-grant-jwt");
+        throw new MCPTransportError(
+          new Error("MCP HTTP Transport Error: POSTing to endpoint (HTTP 403): forbidden"),
+        );
+      }
+      expect(token).toBe("post-grant-jwt");
+      return "ok-after-refresh";
+    });
+
+    expect(result).toEqual({ kind: "ok", result: "ok-after-refresh" });
+    expect(sessionMock.forceRefreshCalls).toBe(1);
+    expect(attempts).toBe(2);
+  });
+
+  it("returns forbidden when retry-after-refresh also yields 403", async () => {
+    sessionMock.ensureResult = {
+      kind: "ok",
+      accessToken: "stale-jwt",
+      supabaseUserId: "supa-u",
+    };
+    sessionMock.forceRefreshResult = {
+      kind: "ok",
+      accessToken: "fresh-jwt",
+      supabaseUserId: "supa-u",
+    };
+
+    let attempts = 0;
+    const result = await withSupabaseGate(input, async () => {
+      attempts += 1;
+      if (attempts === 1) {
+        throw new MCPTransportError(
+          new Error("MCP HTTP Transport Error: POSTing to endpoint (HTTP 401): expired"),
+        );
+      }
+      throw new MCPTransportError(
+        new Error("MCP HTTP Transport Error: POSTing to endpoint (HTTP 403): forbidden"),
+      );
+    });
+
+    expect(result).toEqual({ kind: "forbidden" });
+    expect(sessionMock.forceRefreshCalls).toBe(1);
+    expect(attempts).toBe(2);
   });
 
   it("propagates non-MCPTransportError throws as-is (not caught by retry loop)", async () => {
