@@ -166,18 +166,27 @@ export function stripBotMention(text: string, botUserId: string): string {
 }
 
 /**
- * Posts an initial message in a thread and returns a function to update it.
- * Used for showing a "thinking" indicator that gets replaced with the response.
+ * Posts a thinking-status placeholder as a context block (renders smaller,
+ * gray, italic) and returns a function that replaces it with the final text.
+ * Approximates Slack's native `assistant.threads.setStatus` indicator, which
+ * isn't available outside of AI Assistant threads.
  */
 export async function createMessageUpdater(
-  initialStatus: string,
+  emoji: string,
   channel: string,
   threadTs: string,
 ) {
+  const placeholder = `${emoji}  _Zetlobot is thinking about your question…_`;
   const initialMessage = await client.chat.postMessage({
     channel,
     thread_ts: threadTs,
-    text: initialStatus,
+    text: `${emoji} Zetlobot is thinking about your question…`,
+    blocks: [
+      {
+        type: "context",
+        elements: [{ type: "mrkdwn", text: placeholder }],
+      },
+    ],
   });
 
   if (!initialMessage || !initialMessage.ts)
@@ -188,6 +197,7 @@ export async function createMessageUpdater(
       channel,
       ts: initialMessage.ts as string,
       text: status,
+      blocks: [],
     });
   };
 }

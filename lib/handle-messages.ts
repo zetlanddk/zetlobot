@@ -53,7 +53,7 @@ export async function handleNewAssistantMessage(
 
   const { thread_ts, channel } = event;
   const updateStatus = createAssistantStatusUpdater(channel, thread_ts);
-  await updateStatus(randomThinkingEmoji());
+  await updateStatus(`${randomThinkingEmoji()} Zetlobot is thinking about your question`);
 
   const sessionInput = {
     tenantId,
