@@ -155,7 +155,7 @@ export async function POST(request: Request) {
         waitUntil(handleNewAssistantMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
       } else if (
         (event.channel_type === "channel" || event.channel_type === "group") &&
-        isAutoRespondEnabled(tenantId)
+        isAutoRespondEnabled(tenantId, channelId)
       ) {
         waitUntil(handleChannelMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
       }

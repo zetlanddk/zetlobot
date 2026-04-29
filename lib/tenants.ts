@@ -3,7 +3,10 @@ import { buildSystemPrompt } from "./buildSystemPrompt";
 const tenants = [
   {
     id: "zetland",
-    channelIds: ["C09QRDLKV8F", "GDNFV3SMP"],
+    channels: [
+      { id: "C09QRDLKV8F", autoRespond: true },
+      { id: "GDNFV3SMP" },
+    ],
     mainframeApiRoot: "https://api.zetland.dk",
     supabaseUrl: "https://db.zetland.dk",
     chargebeeSite: "zetland",
@@ -23,16 +26,17 @@ export type TenantSecrets = {
 };
 
 export function getTenantByChannelId(channelId: string): TenantConfig | null {
-  return tenants.find((t) => (t.channelIds as readonly string[]).includes(channelId)) ?? null;
+  return tenants.find((t) => t.channels.some((c) => c.id === channelId)) ?? null;
 }
 
 export function getTenantById(tenantId: TenantId): TenantConfig | null {
   return tenants.find((t) => t.id === tenantId) ?? null;
 }
 
-export function isAutoRespondEnabled(tenantId: TenantId): boolean {
-  const prefix = tenantId.toUpperCase();
-  return process.env[`${prefix}_AUTO_RESPOND`] === "true";
+export function isAutoRespondEnabled(tenantId: TenantId, channelId: string): boolean {
+  const tenant = getTenantById(tenantId);
+  const channel = tenant?.channels.find((c) => c.id === channelId);
+  return channel != null && "autoRespond" in channel && channel.autoRespond === true;
 }
 
 export function getTenantSecrets(tenantId: TenantId): TenantSecrets {
