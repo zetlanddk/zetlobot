@@ -76,7 +76,11 @@ describe("ensureSupabaseSession", () => {
       expiresAt: Date.now() + 600_000,
     };
     const result = await ensureSupabaseSession(input);
-    expect(result).toEqual({ kind: "ok", accessToken: "fresh-jwt" });
+    expect(result).toEqual({
+      kind: "ok",
+      accessToken: "fresh-jwt",
+      supabaseUserId: "supa-u",
+    });
     expect(storeMock.writeCalls).toHaveLength(0);
   });
 
@@ -95,7 +99,11 @@ describe("ensureSupabaseSession", () => {
       expiresAt: Date.now() + 3_600_000,
     };
     const result = await ensureSupabaseSession(input);
-    expect(result).toEqual({ kind: "ok", accessToken: "new-jwt" });
+    expect(result).toEqual({
+      kind: "ok",
+      accessToken: "new-jwt",
+      supabaseUserId: "supa-u",
+    });
     expect(storeMock.writeCalls).toHaveLength(1);
     expect(storeMock.writeCalls[0][3]).toMatchObject({
       accessToken: "new-jwt",
@@ -139,7 +147,11 @@ describe("forceRefresh", () => {
       expiresAt: Date.now() + 3_600_000,
     };
     const result = await forceRefresh(input);
-    expect(result).toEqual({ kind: "ok", accessToken: "new" });
+    expect(result).toEqual({
+      kind: "ok",
+      accessToken: "new",
+      supabaseUserId: "supa-u",
+    });
     expect(storeMock.writeCalls).toHaveLength(1);
   });
 });

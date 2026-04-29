@@ -10,7 +10,7 @@ function logGate(
   input: SessionInput,
   decision: GateResult<unknown>["kind"],
   startedAt: number,
-  reason?: string,
+  opts?: { reason?: string; supabaseUserId?: string },
 ) {
   console.log(
     JSON.stringify({
@@ -18,9 +18,10 @@ function logGate(
       tenantId: input.tenantId,
       slackTeamId: input.slackTeamId,
       slackUserId: input.slackUserId,
+      ...(opts?.supabaseUserId ? { supabaseUserId: opts.supabaseUserId } : {}),
       decision,
       latencyMs: Date.now() - startedAt,
-      ...(reason ? { reason } : {}),
+      ...(opts?.reason ? { reason: opts.reason } : {}),
     }),
   );
 }
@@ -40,17 +41,17 @@ export async function withSupabaseGate<T>(
 
   const session = await ensureSupabaseSession(input);
   if (session.kind === "needs_auth") {
-    logGate(input, "needs_auth", startedAt, "no_session_or_refresh_failed");
+    logGate(input, "needs_auth", startedAt, { reason: "no_session_or_refresh_failed" });
     return { kind: "needs_auth", signInUrl: session.signInUrl };
   }
   if (session.kind === "error") {
-    logGate(input, "error", startedAt, session.reason);
+    logGate(input, "error", startedAt, { reason: session.reason });
     return { kind: "error", reason: session.reason };
   }
 
   try {
     const result = await doWork(session.accessToken);
-    logGate(input, "ok", startedAt);
+    logGate(input, "ok", startedAt, { supabaseUserId: session.supabaseUserId });
     return { kind: "ok", result };
   } catch (err) {
     if (!(err instanceof MCPTransportError)) throw err;
@@ -62,23 +63,27 @@ export async function withSupabaseGate<T>(
         tenantId: input.tenantId,
         slackTeamId: input.slackTeamId,
         slackUserId: input.slackUserId,
+        supabaseUserId: session.supabaseUserId,
         message: err.message,
       }),
     );
 
     const refresh = await forceRefresh(input);
     if (refresh.kind === "needs_auth") {
-      logGate(input, "needs_auth", startedAt, "refresh_token_revoked");
+      logGate(input, "needs_auth", startedAt, { reason: "refresh_token_revoked" });
       return { kind: "needs_auth", signInUrl: refresh.signInUrl };
     }
     if (refresh.kind === "error") {
-      logGate(input, "error", startedAt, refresh.reason);
+      logGate(input, "error", startedAt, { reason: refresh.reason });
       return { kind: "error", reason: refresh.reason };
     }
 
     try {
       const result = await doWork(refresh.accessToken);
-      logGate(input, "ok", startedAt, "ok_after_refresh");
+      logGate(input, "ok", startedAt, {
+        reason: "ok_after_refresh",
+        supabaseUserId: refresh.supabaseUserId,
+      });
       return { kind: "ok", result };
     } catch (err2) {
       if (!(err2 instanceof MCPTransportError)) throw err2;
@@ -89,10 +94,14 @@ export async function withSupabaseGate<T>(
           tenantId: input.tenantId,
           slackTeamId: input.slackTeamId,
           slackUserId: input.slackUserId,
+          supabaseUserId: refresh.supabaseUserId,
           message: err2.message,
         }),
       );
-      logGate(input, "error", startedAt, "transport_failed_after_refresh");
+      logGate(input, "error", startedAt, {
+        reason: "transport_failed_after_refresh",
+        supabaseUserId: refresh.supabaseUserId,
+      });
       return { kind: "error", reason: err2.message };
     }
   }
