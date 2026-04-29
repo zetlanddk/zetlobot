@@ -62,7 +62,7 @@ vi.mock("@supabase/supabase-js", () => {
 });
 
 import { beginOAuth } from "./supabase-oauth";
-import { consumeState, writeState } from "./store";
+import { consumeState, writeSession, writeState } from "./store";
 
 beforeEach(() => {
   redisMock.store.clear();
@@ -71,7 +71,7 @@ beforeEach(() => {
 });
 
 describe("beginOAuth", () => {
-  it("writes the state binding with a 10-minute TTL and returns the Supabase URL", async () => {
+  it("writes the state binding with a 5-minute TTL and returns the Supabase URL", async () => {
     const result = await beginOAuth({
       tenantId: "zetland",
       slackTeamId: "T-ZETLAND",
@@ -86,7 +86,7 @@ describe("beginOAuth", () => {
       (c) => c.kind === "set" && c.key.startsWith("oauth:state:"),
     ) as Extract<RedisCall, { kind: "set" }>[];
     expect(stateSets).toHaveLength(1);
-    expect(stateSets[0].opts?.ex).toBe(600);
+    expect(stateSets[0].opts?.ex).toBe(300);
     expect(stateSets[0].value).toMatchObject({
       tenantId: "zetland",
       slackTeamId: "T-ZETLAND",
@@ -112,5 +112,22 @@ describe("consumeState", () => {
 
     const second = await consumeState("abc123");
     expect(second).toBeNull();
+  });
+});
+
+describe("writeSession", () => {
+  it("writes session records with a 30-day sliding TTL", async () => {
+    await writeSession("zetland", "T1", "U1", {
+      supabaseUserId: "supa-u",
+      accessToken: "at",
+      refreshToken: "rt",
+      expiresAt: Date.now() + 3_600_000,
+    });
+
+    const sets = redisMock.calls.filter(
+      (c) => c.kind === "set" && c.key.startsWith("session:"),
+    ) as Extract<RedisCall, { kind: "set" }>[];
+    expect(sets).toHaveLength(1);
+    expect(sets[0].opts?.ex).toBe(60 * 60 * 24 * 30);
   });
 });

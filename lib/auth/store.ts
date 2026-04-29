@@ -9,9 +9,15 @@ const redis = new Redis({
   token: env.KV_REST_API_TOKEN,
 });
 
-// 10 minutes is enough for a user to complete Google sign-in (account picker,
-// possible 2FA) without being so long that abandoned flows clutter Redis.
-const STATE_TTL_SECONDS = 600;
+// 5 minutes accommodates a Google account picker plus 2FA (including SSO
+// redirects and hardware keys) while shrinking the leaked-URL hijack window.
+// Going tighter (e.g. 120s) is defensible if user behaviour confirms it.
+const STATE_TTL_SECONDS = 300;
+
+// 30-day sliding TTL on session records: every refreshAndPersist writes the
+// session, which resets the TTL — so active users never reap. Inactive users
+// (offboarded, churned, on long PTO) get cleaned up.
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 export type OAuthStateBinding = {
   tenantId: string;
@@ -48,7 +54,9 @@ export async function writeSession(
   slackUserId: string,
   session: SessionRecord,
 ): Promise<void> {
-  await redis.set(sessionKey(tenantId, slackTeamId, slackUserId), session);
+  await redis.set(sessionKey(tenantId, slackTeamId, slackUserId), session, {
+    ex: SESSION_TTL_SECONDS,
+  });
 }
 
 export async function readSession(
