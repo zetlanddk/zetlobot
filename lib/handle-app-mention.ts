@@ -52,7 +52,6 @@ export async function handleNewAppMention(
     slackUserId: currentUserId,
     channelId: channel,
     threadHint: ephemeralThread,
-    loginHintEmail: userInfo?.email,
   };
 
   const gate = await withSupabaseGate(sessionInput, async (accessToken) => {

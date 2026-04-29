@@ -19,7 +19,6 @@ export type SessionInput = {
   slackUserId: string;
   channelId: string;
   threadHint: string | null;
-  loginHintEmail?: string;
 };
 
 export type SessionResult =
@@ -50,7 +49,6 @@ async function startOAuthAndReturnNeedsAuth(input: SessionInput): Promise<Sessio
       slackUserId: input.slackUserId,
       channelId: input.channelId,
       threadHint: input.threadHint,
-      loginHintEmail: input.loginHintEmail,
     };
     const { signInUrl } = await beginOAuth(beginParams);
     return { kind: "needs_auth", signInUrl };

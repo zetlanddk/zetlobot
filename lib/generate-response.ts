@@ -44,14 +44,13 @@ export const generateResponse = async (
     if (userInfo) {
       localTools.get_current_user = tool({
         description:
-          "Get the name and email of the current user who is sending the message. " +
+          "Get the name of the current user who is sending the message. " +
           "Use this when the user refers to themselves with 'me', 'I', 'my', etc. " +
           "and you need to know who they are.",
         inputSchema: z.object({}),
         execute: async () => {
           return {
             name: userInfo.displayName,
-            email: userInfo.email ?? null,
           };
         },
       });

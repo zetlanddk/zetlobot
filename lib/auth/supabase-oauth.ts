@@ -20,7 +20,6 @@ export type BeginOAuthParams = {
   slackUserId: string;
   channelId: string;
   threadHint: string | null;
-  loginHintEmail?: string;
 };
 
 export type BeginOAuthResult = { signInUrl: string };
@@ -39,7 +38,7 @@ function expiresAtMs(session: { expires_at?: number; expires_in?: number }): num
 }
 
 export async function beginOAuth(params: BeginOAuthParams): Promise<BeginOAuthResult> {
-  const { tenantId, slackTeamId, slackUserId, channelId, threadHint, loginHintEmail } = params;
+  const { tenantId, slackTeamId, slackUserId, channelId, threadHint } = params;
   const { tenant, secrets } = requireTenant(tenantId);
 
   const nonce = generateNonce();
@@ -66,15 +65,11 @@ export async function beginOAuth(params: BeginOAuthParams): Promise<BeginOAuthRe
   const callbackUrl = new URL("/api/auth/callback", env.BOT_PUBLIC_URL);
   callbackUrl.searchParams.set("nonce", nonce);
 
-  const queryParams: Record<string, string> = {};
-  if (loginHintEmail) queryParams.login_hint = loginHintEmail;
-
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       skipBrowserRedirect: true,
       redirectTo: callbackUrl.toString(),
-      queryParams,
     },
   });
 

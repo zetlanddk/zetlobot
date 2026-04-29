@@ -63,7 +63,6 @@ export async function handleNewAssistantMessage(
     slackUserId: currentUserId,
     channelId: channel,
     threadHint: thread_ts,
-    loginHintEmail: userInfo?.email,
   };
 
   const gate = await withSupabaseGate(sessionInput, async (accessToken) => {
