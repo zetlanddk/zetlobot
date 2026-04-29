@@ -4,8 +4,8 @@ import { resolve } from "path";
 // Load .env.local for local development
 config({ path: resolve(__dirname, ".env.local") });
 
-// Provide test defaults for required env vars so env-validating modules
-// can be imported without a real env file.
+// Stub env vars that tests assert against, so runs are hermetic regardless
+// of what `.env.local` contains on the developer's machine.
 const testDefaults: Record<string, string> = {
   SLACK_BOT_TOKEN: "xoxb-test",
   SLACK_SIGNING_SECRET: "test-signing-secret",
@@ -17,7 +17,5 @@ const testDefaults: Record<string, string> = {
 };
 
 for (const [key, value] of Object.entries(testDefaults)) {
-  if (!process.env[key]) {
-    process.env[key] = value;
-  }
+  process.env[key] = value;
 }
