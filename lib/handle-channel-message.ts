@@ -2,7 +2,7 @@ import type { GenericMessageEvent } from "@slack/web-api";
 import { client, getThread, createMessageUpdater, stripBotMention, stripSlackLinks } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
-import { TenantId } from "./tenants";
+import { TenantId, getTenantById } from "./tenants";
 import { shouldRespond } from "./should-respond";
 import { withSupabaseGate } from "./auth/gate";
 import { postSignInPrompt, postForbiddenPrompt } from "./auth/slack-prompts";
@@ -25,7 +25,13 @@ export async function handleChannelMessage(
     return;
   }
 
-  const respond = await shouldRespond(event, botUserId);
+  const tenant = getTenantById(tenantId);
+  if (!tenant) {
+    console.log(`Tenant ${tenantId} not found; skipping`);
+    return;
+  }
+
+  const respond = await shouldRespond(event, botUserId, tenant.shortcuts);
   if (!respond) return;
 
   const { thread_ts, channel } = event;

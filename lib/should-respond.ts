@@ -2,12 +2,18 @@ import type { GenericMessageEvent } from "@slack/web-api";
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { isBotInThread, stripBotMention } from "./slack-utils";
+import type { Shortcut } from "./tenants";
 
-const CLASSIFICATION_PROMPT = `You are a classification model for an internal technical support bot in Slack.
+function buildClassificationPrompt(shortcuts: readonly Shortcut[]): string {
+  const shortcutLines = shortcuts.map((s) => `- "${s.trigger}"`).join("\n");
+  return `You are a classification model for an internal technical support bot in Slack.
 
 Your task: Decide whether the following Slack channel message is something the bot should respond to.
 
-The bot CAN help with:
+ALWAYS respond YES if the message matches one of these shortcut patterns (in any language, even if abbreviated or with extra words):
+${shortcutLines}
+
+Otherwise, the bot CAN help with:
 - User and account lookups
 - Subscriptions, memberships, and payment status
 - Gift codes, impersonation links, account merges, email changes, GDPR deletion
@@ -23,6 +29,7 @@ The bot should NOT respond to:
 - Jokes, memes, or casual communication
 
 Respond ONLY with "YES" or "NO".`;
+}
 
 function logDecision(
   channelId: string,
@@ -45,6 +52,7 @@ function logDecision(
 export async function shouldRespond(
   event: GenericMessageEvent,
   botUserId: string,
+  shortcuts: readonly Shortcut[],
 ): Promise<boolean> {
   const startedAt = Date.now();
 
@@ -72,7 +80,7 @@ export async function shouldRespond(
   try {
     const { text } = await generateText({
       model: anthropic("claude-haiku-4-5-20251001"),
-      system: CLASSIFICATION_PROMPT,
+      system: buildClassificationPrompt(shortcuts),
       messages: [{ role: "user", content }],
       temperature: 0,
       maxOutputTokens: 5,

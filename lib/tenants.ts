@@ -1,5 +1,45 @@
 import { buildSystemPrompt } from "./buildSystemPrompt";
 
+export type Shortcut = { trigger: string; action: string };
+
+const zetlandShortcuts: readonly Shortcut[] = [
+  {
+    trigger: "medlem <mail/id>",
+    action: "Slå brugerens profil og abonnementsinfo op.",
+  },
+  {
+    trigger: "virksomhed <id>",
+    action:
+      "Slå virksomhedsdetaljer op: navn, administratorer, medarbejdere og ChargeBee-link.",
+  },
+  {
+    trigger: "send gave <gavekode> til <mail>",
+    action:
+      "Send en eksisterende gavekode til en e-mailadresse. Bekræft før afsendelse.",
+  },
+  {
+    trigger: "lav <antal> gavekoder på <antal> måneder til <navn>",
+    action: "Opret gavekoder. Maks 50 ad gangen. Bekræft før oprettelse.",
+  },
+  {
+    trigger: "jeg er <medlem>",
+    action: "Generér et impersonations-magic-link. Advar om at logge ud bagefter.",
+  },
+  {
+    trigger: "<medlem> vil gerne logge ind med email",
+    action: "Flet duplikerede brugerkonti. Bekræft før eksekvering.",
+  },
+  {
+    trigger: "skift email fra <mail> til <mail>",
+    action: "Skift brugerens e-mailadresse. Bekræft før eksekvering.",
+  },
+  {
+    trigger: "lav GDPR-sletning for <id>",
+    action:
+      "Udfør GDPR-sletning. Bekræft altid først. Kan fejle hvis brugeren har aktive abonnementer.",
+  },
+] as const;
+
 const tenants = [
   {
     id: "zetland",
@@ -11,8 +51,13 @@ const tenants = [
     supabaseUrl: "https://db.zetland.dk",
     chargebeeSite: "zetland",
     language: "Danish",
+    shortcuts: zetlandShortcuts,
     getSystemPrompt: () =>
-      buildSystemPrompt({ chargebeeSite: "zetland", language: "Danish" }),
+      buildSystemPrompt({
+        chargebeeSite: "zetland",
+        language: "Danish",
+        shortcuts: zetlandShortcuts,
+      }),
   },
 ] as const;
 
