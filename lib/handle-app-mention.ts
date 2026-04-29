@@ -1,7 +1,7 @@
 import { AppMentionEvent } from "@slack/web-api";
-import { getThread, stripSlackLinks, createMessageUpdater } from "./slack-utils";
+import { getThread, stripSlackLinks, createReactionPlaceholder } from "./slack-utils";
 import { generateResponse } from "./generate-response";
-import { randomThinkingEmoji } from "./utils";
+import { randomThinkingReaction } from "./utils";
 import { TenantId } from "./tenants";
 import { withSupabaseGate } from "./auth/gate";
 import { postForbiddenPrompt, postSignInPrompt } from "./auth/slack-prompts";
@@ -23,7 +23,12 @@ export async function handleNewAppMention(
   }
 
   const ephemeralThread = thread_ts ?? event.ts;
-  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), channel, ephemeralThread);
+  const updateMessage = await createReactionPlaceholder(
+    randomThinkingReaction(),
+    channel,
+    event.ts,
+    ephemeralThread,
+  );
 
   const sessionInput = {
     tenantId,
@@ -48,8 +53,8 @@ export async function handleNewAppMention(
     return;
   }
 
-  // Replace the thinking emoji with a brief in-thread acknowledgement, and
-  // post the actionable ephemeral separately so it doesn't get lost.
+  // Post a brief in-thread acknowledgement (which also clears the reaction),
+  // and post the actionable ephemeral separately so it doesn't get lost.
   if (gate.kind === "needs_auth") {
     await updateMessage("I sent you a sign-in link.");
     await postSignInPrompt(

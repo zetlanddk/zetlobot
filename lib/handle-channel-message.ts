@@ -1,7 +1,7 @@
 import type { GenericMessageEvent } from "@slack/web-api";
-import { client, getThread, createMessageUpdater, stripBotMention, stripSlackLinks } from "./slack-utils";
+import { client, getThread, createReactionPlaceholder, stripBotMention, stripSlackLinks } from "./slack-utils";
 import { generateResponse } from "./generate-response";
-import { randomThinkingEmoji } from "./utils";
+import { randomThinkingReaction } from "./utils";
 import { TenantId, getTenantById } from "./tenants";
 import { shouldRespond } from "./should-respond";
 import { withSupabaseGate } from "./auth/gate";
@@ -37,11 +37,11 @@ export async function handleChannelMessage(
   const { thread_ts, channel } = event;
   const threadTs = thread_ts ?? event.ts;
 
-  // Defer the public "thinking" indicator until inside doWork, so we don't
+  // Defer the public "thinking" reaction until inside doWork, so we don't
   // expose the bot's auto-respond attempt (or the user's auth state) when
   // the user didn't @-mention us. Holder object so TS doesn't narrow the
-  // type across the closure mutation. Null-guard prevents double-posting
-  // on a force-refresh retry.
+  // type across the closure mutation. Null-guard prevents a duplicate
+  // reaction on a force-refresh retry.
   type Updater = (status: string) => Promise<void>;
   const state: { updater: Updater | null } = { updater: null };
 
@@ -55,7 +55,12 @@ export async function handleChannelMessage(
     },
     async (accessToken) => {
       if (!state.updater) {
-        state.updater = await createMessageUpdater(randomThinkingEmoji(), channel, threadTs);
+        state.updater = await createReactionPlaceholder(
+          randomThinkingReaction(),
+          channel,
+          event.ts,
+          threadTs,
+        );
       }
       const messages = thread_ts
         ? await getThread(channel, thread_ts, botUserId)
@@ -97,8 +102,8 @@ export async function handleChannelMessage(
 
   console.error("Auth gate error:", gate.reason);
   if (updater) {
-    // Auth succeeded; generation kept failing. Replace the public thinking
-    // indicator so the user isn't stuck looking at an emoji.
+    // Auth succeeded; generation kept failing. Post the error reply (which
+    // also clears the thinking reaction) so the user isn't left in limbo.
     await updater("Sorry, I encountered an error while generating a response. Please try again.");
   } else {
     // Session failed before any public artifact; keep the failure private.

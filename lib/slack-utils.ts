@@ -166,29 +166,34 @@ export function stripBotMention(text: string, botUserId: string): string {
 }
 
 /**
- * Posts an initial message in a thread and returns a function to update it.
- * Used for showing a "thinking" indicator that gets replaced with the response.
+ * Adds a "thinking" reaction to the user's message and returns a function
+ * that posts the final answer as a thread reply, then removes the reaction.
  */
-export async function createMessageUpdater(
-  initialStatus: string,
+export async function createReactionPlaceholder(
+  reactionName: string,
   channel: string,
+  messageTs: string,
   threadTs: string,
 ) {
-  const initialMessage = await client.chat.postMessage({
+  await client.reactions.add({
     channel,
-    thread_ts: threadTs,
-    text: initialStatus,
+    name: reactionName,
+    timestamp: messageTs,
   });
 
-  if (!initialMessage || !initialMessage.ts)
-    throw new Error("Failed to post initial message");
-
-  return async (status: string) => {
-    await client.chat.update({
+  return async (text: string) => {
+    await client.chat.postMessage({
       channel,
-      ts: initialMessage.ts as string,
-      text: status,
+      thread_ts: threadTs,
+      text,
+      unfurl_links: false,
     });
+    await client.reactions
+      .remove({ channel, name: reactionName, timestamp: messageTs })
+      .catch(() => {
+        // Best-effort: tolerate no_reaction races (e.g. a user manually
+        // removed it, or a retry already cleared it).
+      });
   };
 }
 
