@@ -1,30 +1,10 @@
 import { AppMentionEvent } from "@slack/web-api";
-import { client, getThread, stripSlackLinks } from "./slack-utils";
+import { getThread, stripSlackLinks, createMessageUpdater } from "./slack-utils";
 import { generateResponse } from "./generate-response";
 import { randomThinkingEmoji } from "./utils";
 import { TenantId } from "./tenants";
 import { withSupabaseGate } from "./auth/gate";
 import { postForbiddenPrompt, postSignInPrompt } from "./auth/slack-prompts";
-
-const createMessageUpdater = async (initialStatus: string, event: AppMentionEvent) => {
-  const initialMessage = await client.chat.postMessage({
-    channel: event.channel,
-    thread_ts: event.thread_ts ?? event.ts,
-    text: initialStatus,
-  });
-
-  if (!initialMessage || !initialMessage.ts)
-    throw new Error("Failed to post initial message");
-
-  const updateMessage = async (status: string) => {
-    await client.chat.update({
-      channel: event.channel,
-      ts: initialMessage.ts as string,
-      text: status,
-    });
-  };
-  return updateMessage;
-};
 
 export async function handleNewAppMention(
   event: AppMentionEvent,
@@ -42,9 +22,9 @@ export async function handleNewAppMention(
     return;
   }
 
-  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), event);
-
   const ephemeralThread = thread_ts ?? event.ts;
+  const updateMessage = await createMessageUpdater(randomThinkingEmoji(), channel, ephemeralThread);
+
   const sessionInput = {
     tenantId,
     slackTeamId,
