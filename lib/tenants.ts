@@ -45,7 +45,7 @@ const tenants = [
     id: "zetland",
     channels: [
       { id: "C09QRDLKV8F", autoRespond: true },
-      { id: "GDNFV3SMP" },
+      { id: "GDNFV3SMP", autoRespond: true },
     ],
     mainframeApiRoot: "https://api.zetland.dk",
     supabaseUrl: "https://db.zetland.dk",
