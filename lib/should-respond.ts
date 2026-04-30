@@ -23,7 +23,7 @@ Otherwise, the bot can help with:
 - Technical support questions related to internal systems
 
 Respond NO if ANY of these apply:
-- The message is directed at another person (e.g. starts with "@name", a \`<@U…>\` mention, or otherwise addresses a specific human rather than the bot).
+- The message addresses another human rather than the bot. This includes any leading "@name" (with or without angle brackets, e.g. \`@niels\`, \`<@U123>\`, \`<@U123|niels>\`) AND messages that open with a person's name as a vocative (e.g. "Niels, ..." or "Silje – ..."). Even if such a message contains a question, it is a follow-up to that human, not a request to the bot.
 - The message is a statement, observation, or comment with no actionable request and no question. Containing an email or member ID does NOT make it a request — there must be an explicit ask or question.
 - The message is general chat, smalltalk, jokes, memes, or casual reactions.
 - It's a confirmation, thank-you, single emoji, or follow-up that doesn't ask anything new.
@@ -34,6 +34,8 @@ When in doubt, default to NO. The bot should err on the side of staying silent r
 Examples:
 - "@silje Har du adgang til Zetland? :smile:" → NO (directed at another user)
 - "<@U123ABC> kan du tjekke det her?" → NO (directed at another user)
+- "@niels Fik du svar på dit spørgsmål?" → NO (follow-up directed at another user, even though it's a question)
+- "Silje, kan du lige tjekke det her?" → NO (vocative address to another human)
 - "hahha, jeg har medlemskab på siljebroenderup@gmail.com" → NO (statement, no question or request)
 - "tak!" → NO (acknowledgement)
 - "medlem niels@zetland.dk" → YES (matches shortcut)
@@ -42,10 +44,12 @@ Examples:
 Respond ONLY with "YES" or "NO".`;
 }
 
-// Matches a leading Slack user mention: `<@U…>` or `<@U…|display>`.
-// stripBotMention has already removed the bot's own mention, so anything
-// matched here is a mention of another human and the message is not for us.
-const LEADING_USER_MENTION = /^<@[UW][A-Z0-9]+(?:\|[^>]*)?>/;
+// Matches a leading address to another human: a Slack user mention
+// (`<@U…>` / `<@U…|display>`) or a plain-text "@name" typed without going
+// through Slack's autocomplete picker. stripBotMention has already removed
+// the bot's own mention, so anything matched here is directed at someone else.
+const LEADING_USER_MENTION =
+  /^(?:<@[UW][A-Z0-9]+(?:\|[^>]*)?>|@[A-Za-z][\w.-]{0,30})/;
 
 function startsWithOtherUserMention(content: string): boolean {
   return LEADING_USER_MENTION.test(content.trimStart());

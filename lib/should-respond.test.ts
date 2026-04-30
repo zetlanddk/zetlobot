@@ -82,6 +82,37 @@ describe("shouldRespond deterministic short-circuits", () => {
     expect(aiMock.generateTextCalls).toBe(0);
   });
 
+  it("returns false for a leading plain-text @name (typed without autocomplete)", async () => {
+    const result = await shouldRespond(
+      makeEvent("@niels Fik du svar på dit spørgsmål?"),
+      BOT_ID,
+      SHORTCUTS,
+    );
+    expect(result).toBe(false);
+    expect(aiMock.generateTextCalls).toBe(0);
+  });
+
+  it("returns false for a leading plain-text @name with dots/hyphens", async () => {
+    const result = await shouldRespond(
+      makeEvent("@niels.kloster kan du tjekke?"),
+      BOT_ID,
+      SHORTCUTS,
+    );
+    expect(result).toBe(false);
+    expect(aiMock.generateTextCalls).toBe(0);
+  });
+
+  it("does not short-circuit on a mid-message email containing @", async () => {
+    const result = await shouldRespond(
+      makeEvent("medlem niels@zetland.dk"),
+      BOT_ID,
+      SHORTCUTS,
+    );
+    // No leading @name → classifier runs (and throws in tests).
+    expect(result).toBe(false);
+    expect(aiMock.generateTextCalls).toBe(1);
+  });
+
   it("falls through to the classifier when the message starts with text, not a mention", async () => {
     // The mocked classifier throws; that's how we assert the short-circuits
     // didn't fire. The function catches the error and returns false via the
