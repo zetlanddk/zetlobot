@@ -155,7 +155,10 @@ export async function POST(request: Request) {
         waitUntil(handleNewAssistantMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
       } else if (
         (event.channel_type === "channel" || event.channel_type === "group") &&
-        isAutoRespondEnabled(tenantId, channelId)
+        isAutoRespondEnabled(tenantId, channelId) &&
+        // Slack delivers both `app_mention` and `message` for an explicit
+        // @-mention; let the app_mention branch handle it to avoid a double reply.
+        !(event.text ?? "").includes(`<@${botUserId}>`)
       ) {
         waitUntil(handleChannelMessage(event, botUserId, tenantId, currentUserId, slackTeamId));
       }
