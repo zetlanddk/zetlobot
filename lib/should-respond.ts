@@ -10,32 +10,60 @@ function buildClassificationPrompt(shortcuts: readonly Shortcut[]): string {
 
 Your task: Decide whether the following Slack channel message is something the bot should respond to.
 
+The bot's own @-mention has already been removed before you see the message. Any remaining \`<@U…>\` token is therefore a mention of *another* human, not the bot.
+
 ALWAYS respond YES if the message matches one of these shortcut patterns (in any language, even if abbreviated or with extra words):
 ${shortcutLines}
 
-Otherwise, the bot CAN help with:
+Otherwise, the bot can help with:
 - User and account lookups
 - Subscriptions, memberships, and payment status
 - Gift codes, impersonation links, account merges, email changes, GDPR deletion
 - Company lookups
 - Technical support questions related to internal systems
-- Questions directed at the bot
 
-The bot should NOT respond to:
-- General chat and smalltalk between colleagues
-- Messages clearly directed at other people
-- Questions unrelated to technical support or user management
-- Simple confirmations, thank-you messages, emojis, or reactions
-- Jokes, memes, or casual communication
+Respond NO if ANY of these apply:
+- The message is directed at another person (e.g. starts with "@name", a \`<@U…>\` mention, or otherwise addresses a specific human rather than the bot).
+- The message is a statement, observation, or comment with no actionable request and no question. Containing an email or member ID does NOT make it a request — there must be an explicit ask or question.
+- The message is general chat, smalltalk, jokes, memes, or casual reactions.
+- It's a confirmation, thank-you, single emoji, or follow-up that doesn't ask anything new.
+- The topic is unrelated to user management or technical support.
+
+When in doubt, default to NO. The bot should err on the side of staying silent rather than interrupting a human conversation.
+
+Examples:
+- "@silje Har du adgang til Zetland? :smile:" → NO (directed at another user)
+- "<@U123ABC> kan du tjekke det her?" → NO (directed at another user)
+- "hahha, jeg har medlemskab på siljebroenderup@gmail.com" → NO (statement, no question or request)
+- "tak!" → NO (acknowledgement)
+- "medlem niels@zetland.dk" → YES (matches shortcut)
+- "kan I lave en gavekode til kunde@x.dk?" → YES (explicit request)
 
 Respond ONLY with "YES" or "NO".`;
+}
+
+// Matches a leading Slack user mention: `<@U…>` or `<@U…|display>`.
+// stripBotMention has already removed the bot's own mention, so anything
+// matched here is a mention of another human and the message is not for us.
+const LEADING_USER_MENTION = /^<@[UW][A-Z0-9]+(?:\|[^>]*)?>/;
+
+function startsWithOtherUserMention(content: string): boolean {
+  return LEADING_USER_MENTION.test(content.trimStart());
 }
 
 function logDecision(
   channelId: string,
   decision: "yes" | "no",
   startedAt: number,
-  opts: { reason: "thread_bypass" | "empty_content" | "classifier" | "classifier_error"; classifierOutput?: string },
+  opts: {
+    reason:
+      | "thread_bypass"
+      | "empty_content"
+      | "directed_at_other_user"
+      | "classifier"
+      | "classifier_error";
+    classifierOutput?: string;
+  },
 ) {
   console.log(
     JSON.stringify({
@@ -74,6 +102,11 @@ export async function shouldRespond(
 
   if (!content) {
     logDecision(event.channel, "no", startedAt, { reason: "empty_content" });
+    return false;
+  }
+
+  if (startsWithOtherUserMention(content)) {
+    logDecision(event.channel, "no", startedAt, { reason: "directed_at_other_user" });
     return false;
   }
 
